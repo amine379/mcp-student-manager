@@ -1,0 +1,28 @@
+# ──────────────────────────────────────────────
+#  Stage 1 — Build the JAR with Maven
+# ──────────────────────────────────────────────
+FROM maven:3.9-eclipse-temurin-17 AS build
+
+WORKDIR /app
+
+# Copy pom.xml first → cache Maven dependencies
+COPY student-manager/pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source code and build (skip tests — no DB during build)
+COPY student-manager/src ./src
+RUN mvn clean package -DskipTests -B
+
+# ──────────────────────────────────────────────
+#  Stage 2 — Lightweight runtime image
+# ──────────────────────────────────────────────
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+# Copy only the built JAR from stage 1
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

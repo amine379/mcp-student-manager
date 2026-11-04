@@ -56,6 +56,9 @@ export default function Login() {
         </button>
         <p className="text-center text-xs text-slate-400">{t("remember_hint")}</p>
       </form>
+      <p className="mt-4 max-w-sm text-center text-xs text-slate-500">
+        <span className="font-medium text-slate-600">{t("forgot_password")}</span> {t("contact_teacher")}
+      </p>
     </div>
   );
 }

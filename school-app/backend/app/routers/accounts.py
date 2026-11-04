@@ -11,9 +11,12 @@ from app.security import admin_user, current_user, hash_password, my_students
 router = APIRouter(prefix="/api", tags=["comptes"])
 
 
-async def _ensure_username_free(db: AsyncSession, username: str) -> str:
+async def _ensure_username_free(db: AsyncSession, username: str, exclude_id: int | None = None) -> str:
     username = username.strip().lower()
-    if await db.scalar(select(User.id).where(User.username == username)):
+    q = select(User.id).where(User.username == username)
+    if exclude_id is not None:
+        q = q.where(User.id != exclude_id)
+    if await db.scalar(q):
         raise HTTPException(status.HTTP_409_CONFLICT, "username_taken")
     return username
 
@@ -54,8 +57,16 @@ async def update_parent(parent_id: int, data: ParentUpdate, db: AsyncSession = D
     if parent is None or parent.role != Role.PARENT:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "parent_not_found")
     changes = data.model_dump(exclude_unset=True)
-    for key, value in changes.items():
-        setattr(parent, key, value or None)
+    new_username = changes.pop("username", None)
+    new_password = changes.pop("password", None)
+    if "full_name" in changes:
+        parent.full_name = changes["full_name"]
+    if "phone" in changes:
+        parent.phone = changes["phone"] or None
+    if new_username:
+        parent.username = await _ensure_username_free(db, new_username, exclude_id=parent.id)
+    if new_password:
+        parent.password_hash = hash_password(new_password)
     await db.commit()
     await db.refresh(parent, ["children"])
     return parent
@@ -71,7 +82,7 @@ async def list_students(
 ):
     if user.role != Role.ADMIN:
         return await my_students(user, db)
-    q = select(Student).order_by(Student.level, Student.first_name)
+    q = select(Student).options(selectinload(Student.user)).order_by(Student.level, Student.first_name)
     if level:
         q = q.where(Student.level == level)
     if not include_inactive:
@@ -109,18 +120,45 @@ async def create_student(data: StudentIn, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/students/{student_id}", response_model=StudentOut, dependencies=[Depends(admin_user)])
 async def update_student(student_id: int, data: StudentUpdate, db: AsyncSession = Depends(get_db)):
-    student = await db.get(Student, student_id)
+    student = await db.get(Student, student_id, options=[selectinload(Student.user)])
     if student is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "student_not_found")
     changes = data.model_dump(exclude_unset=True)
+    new_username = changes.pop("username", None)
+    new_password = changes.pop("password", None)
     if "parent_id" in changes:
         await _ensure_parent(db, changes["parent_id"])
     for key, value in changes.items():
         setattr(student, key, value)
-    if student.user_id and "is_active" in changes:
-        login = await db.get(User, student.user_id)
+
+    login = student.user
+    # Le nom affiché du compte élève suit le prénom/nom
+    if login and ("first_name" in changes or "last_name" in changes):
+        login.full_name = f"{student.first_name} {student.last_name}"
+    if login and "is_active" in changes:
         login.is_active = student.is_active
+
+    if new_username or new_password:
+        if login is None:
+            if not new_username or not new_password:
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "login_requires_username_password")
+            login = User(
+                username=await _ensure_username_free(db, new_username),
+                password_hash=hash_password(new_password),
+                role=Role.STUDENT,
+                full_name=f"{student.first_name} {student.last_name}",
+            )
+            db.add(login)
+            await db.flush()
+            student.user_id = login.id
+        else:
+            if new_username:
+                login.username = await _ensure_username_free(db, new_username, exclude_id=login.id)
+            if new_password:
+                login.password_hash = hash_password(new_password)
+
     await db.commit()
+    await db.refresh(student, ["user"])
     return student
 
 

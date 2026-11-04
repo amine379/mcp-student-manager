@@ -81,6 +81,12 @@ class Student(Base):
     user: Mapped[User | None] = relationship(foreign_keys=[user_id])
     parent: Mapped[User | None] = relationship(back_populates="children", foreign_keys=[parent_id])
 
+    @property
+    def username(self) -> str | None:
+        # Lit le login SANS déclencher de lazy-load (None si la relation n'est pas chargée)
+        u = self.__dict__.get("user")
+        return u.username if u else None
+
 
 class Lesson(Base):
     """Une séance (cours donné à un niveau, à une date et un créneau)."""

@@ -48,6 +48,7 @@ export interface Student {
   parent_id: number | null;
   user_id: number | null;
   is_active: boolean;
+  username?: string | null;
 }
 
 export interface Parent extends User {

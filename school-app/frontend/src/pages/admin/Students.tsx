@@ -42,7 +42,7 @@ export default function Students() {
           {(list) => list.length === 0 ? <Empty /> : (
             <div className="card divide-y divide-slate-100 p-0">
               {list.map((s) => (
-                <StudentRow key={s.id} s={s} parentName={parentName(s.parent_id)} onChange={reloadAll} />
+                <StudentRow key={s.id} s={s} parents={parents.data ?? []} parentName={parentName(s.parent_id)} onChange={reloadAll} />
               ))}
             </div>
           )}
@@ -54,21 +54,7 @@ export default function Students() {
         <Loader state={parents}>
           {(list) => list.length === 0 ? <Empty /> : (
             <div className="card divide-y divide-slate-100 p-0">
-              {list.map((p) => (
-                <div key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
-                  <div className="min-w-40 flex-1">
-                    <p className="font-medium">{p.full_name}</p>
-                    <p className="text-xs text-slate-500" dir="ltr">@{p.username}</p>
-                    <PhoneEdit parent={p} onChange={reloadAll} />
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {p.children.map((c) => (
-                      <span key={c.id} className="badge bg-slate-100 text-slate-700">{c.first_name} · {c.level}</span>
-                    ))}
-                  </div>
-                  <ResetPassword userId={p.id} />
-                </div>
-              ))}
+              {list.map((p) => <ParentRow key={p.id} p={p} onChange={reloadAll} />)}
             </div>
           )}
         </Loader>
@@ -77,76 +63,146 @@ export default function Students() {
   );
 }
 
-function StudentRow({ s, parentName, onChange }: { s: Student; parentName?: string; onChange: () => void }) {
+function StudentRow({ s, parents, parentName, onChange }: { s: Student; parents: Parent[]; parentName?: string; onChange: () => void }) {
   const { t } = useI18n();
+  const [edit, setEdit] = useState(false);
   const toggle = () => api.patch(`/api/students/${s.id}`, { is_active: !s.is_active }).then(onChange);
+
+  if (edit)
+    return (
+      <div className="px-4 py-3">
+        <StudentEditForm s={s} parents={parents} onDone={() => { setEdit(false); onChange(); }} onCancel={() => setEdit(false)} />
+      </div>
+    );
+
   return (
     <div className={`flex flex-wrap items-center gap-3 px-4 py-3 text-sm ${s.is_active ? "" : "opacity-50"}`}>
       <LevelBadge level={s.level} />
       <div className="min-w-40 flex-1">
         <p className="font-medium">{s.first_name} {s.last_name} {!s.is_active && <span className="text-xs">({t("inactive")})</span>}</p>
-        {parentName && <p className="text-xs text-slate-500">{t("parent")} : {parentName}</p>}
+        <p className="text-xs text-slate-500">
+          {parentName && <>{t("parent")} : {parentName} · </>}
+          {s.username ? <span dir="ltr">@{s.username}</span> : <span className="text-slate-400">{t("no_login")}</span>}
+        </p>
       </div>
-      {s.user_id && <ResetPassword userId={s.user_id} />}
-      <button className="btn-light" onClick={toggle}>{s.is_active ? t("deactivate") : t("reactivate")}</button>
+      <button className="btn-light text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
+      <button className="btn-light text-xs" onClick={toggle}>{s.is_active ? t("deactivate") : t("reactivate")}</button>
     </div>
   );
 }
 
-function PhoneEdit({ parent, onChange }: { parent: Parent; onChange: () => void }) {
+function StudentEditForm({ s, parents, onDone, onCancel }: { s: Student; parents: Parent[]; onDone: () => void; onCancel: () => void }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [phone, setPhone] = useState(parent.phone ?? "");
-  const { busy, run } = useSubmit();
+  const [f, setF] = useState({
+    first_name: s.first_name,
+    last_name: s.last_name,
+    level: s.level,
+    parent_id: s.parent_id ? String(s.parent_id) : "",
+    username: s.username ?? "",
+    password: "",
+  });
+  const { busy, error, run } = useSubmit();
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
 
-  if (!open)
-    return (
-      <button className="text-xs text-indigo-700 hover:underline" onClick={() => setOpen(true)}>
-        {parent.phone ? <span dir="ltr">{parent.phone}</span> : `+ ${t("phone")}`}
-      </button>
-    );
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (await run(() => api.patch(`/api/parents/${parent.id}`, { phone: phone || null }))) {
-      setOpen(false);
-      onChange();
-    }
+    const body: Record<string, unknown> = {
+      first_name: f.first_name,
+      last_name: f.last_name,
+      level: f.level,
+      parent_id: f.parent_id ? Number(f.parent_id) : null,
+    };
+    if (f.username.trim()) body.username = f.username.trim();
+    if (f.password) body.password = f.password;
+    if (await run(() => api.patch(`/api/students/${s.id}`, body))) onDone();
   };
+
   return (
-    <form onSubmit={submit} className="mt-1 flex items-center gap-1">
-      <input className="input h-8 w-36 py-1 text-xs" dir="ltr" inputMode="tel" placeholder="0612345678"
-        value={phone} onChange={(e) => setPhone(e.target.value)} autoFocus />
-      <button className="btn h-8 px-2 py-1 text-xs" disabled={busy}>{t("save")}</button>
-      <button type="button" className="btn-light h-8 px-2 py-1 text-xs" onClick={() => setOpen(false)}>✕</button>
+    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+      <h3 className="font-semibold sm:col-span-2">{t("edit")} — {s.first_name}</h3>
+      <Field label={t("first_name")}><input className="input" value={f.first_name} onChange={set("first_name")} required /></Field>
+      <Field label={t("last_name")}><input className="input" value={f.last_name} onChange={set("last_name")} /></Field>
+      <Field label={t("level")}>
+        <select className="input" value={f.level} onChange={set("level")}>
+          {LEVELS.map((l) => <option key={l} value={l}>{t(l)}</option>)}
+        </select>
+      </Field>
+      <Field label={t("parent")}>
+        <select className="input" value={f.parent_id} onChange={set("parent_id")}>
+          <option value="">{t("no_parent")}</option>
+          {parents.map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+        </select>
+      </Field>
+      <Field label={t("username")} hint={t("student_login_hint")}>
+        <input className="input" dir="ltr" autoComplete="off" value={f.username} onChange={set("username")} minLength={3} />
+      </Field>
+      <Field label={t("new_password")} hint={t("keep_password_hint")}>
+        <PasswordInput autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} />
+      </Field>
+      <div className="sm:col-span-2"><ErrorBox error={error} /></div>
+      <div className="flex gap-2 sm:col-span-2">
+        <button className="btn" disabled={busy}>{t("save")}</button>
+        <button type="button" className="btn-light" onClick={onCancel}>{t("cancel")}</button>
+      </div>
     </form>
   );
 }
 
-function ResetPassword({ userId }: { userId: number }) {
+function ParentRow({ p, onChange }: { p: Parent; onChange: () => void }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [pwd, setPwd] = useState("");
-  const [done, setDone] = useState(false);
-  const { busy, error, run } = useSubmit();
+  const [edit, setEdit] = useState(false);
 
-  if (!open) return <button className="btn-light text-xs" onClick={() => setOpen(true)}>{t("reset_password")}</button>;
+  if (edit)
+    return (
+      <div className="px-4 py-3">
+        <ParentEditForm p={p} onDone={() => { setEdit(false); onChange(); }} onCancel={() => setEdit(false)} />
+      </div>
+    );
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+      <div className="min-w-40 flex-1">
+        <p className="font-medium">{p.full_name}</p>
+        <p className="text-xs text-slate-500" dir="ltr">@{p.username}{p.phone && ` · ${p.phone}`}</p>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {p.children.map((c) => (
+          <span key={c.id} className="badge bg-slate-100 text-slate-700">{c.first_name} · {c.level}</span>
+        ))}
+      </div>
+      <button className="btn-light text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
+    </div>
+  );
+}
+
+function ParentEditForm({ p, onDone, onCancel }: { p: Parent; onDone: () => void; onCancel: () => void }) {
+  const { t } = useI18n();
+  const [f, setF] = useState({ full_name: p.full_name, phone: p.phone ?? "", username: p.username, password: "" });
+  const { busy, error, run } = useSubmit();
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (await run(() => api.post(`/api/users/${userId}/reset-password`, { new_password: pwd }))) {
-      setDone(true);
-      setPwd("");
-    }
+    const body: Record<string, unknown> = { full_name: f.full_name, phone: f.phone || null };
+    if (f.username.trim() && f.username.trim() !== p.username) body.username = f.username.trim();
+    if (f.password) body.password = f.password;
+    if (await run(() => api.patch(`/api/parents/${p.id}`, body))) onDone();
   };
+
   return (
-    <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
-      <div className="w-48">
-        <PasswordInput placeholder={t("reset_password")} minLength={6} value={pwd}
-          onChange={(e) => setPwd(e.target.value)} required autoComplete="new-password" />
+    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+      <h3 className="font-semibold sm:col-span-2">{t("edit")} — {p.full_name}</h3>
+      <Field label={t("full_name")}><input className="input" value={f.full_name} onChange={set("full_name")} required /></Field>
+      <Field label={t("phone")}><input className="input" dir="ltr" inputMode="tel" value={f.phone} onChange={set("phone")} /></Field>
+      <Field label={t("username")}><input className="input" dir="ltr" autoComplete="off" value={f.username} onChange={set("username")} minLength={3} required /></Field>
+      <Field label={t("new_password")} hint={t("keep_password_hint")}>
+        <PasswordInput autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} />
+      </Field>
+      <div className="sm:col-span-2"><ErrorBox error={error} /></div>
+      <div className="flex gap-2 sm:col-span-2">
+        <button className="btn" disabled={busy}>{t("save")}</button>
+        <button type="button" className="btn-light" onClick={onCancel}>{t("cancel")}</button>
       </div>
-      <button className="btn" disabled={busy}>{t("save")}</button>
-      <button type="button" className="btn-light" onClick={() => setOpen(false)}>✕</button>
-      {done && <span className="text-xs text-emerald-700">{t("saved")}</span>}
-      <ErrorBox error={error} />
     </form>
   );
 }
@@ -165,7 +221,7 @@ function ParentForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
       <h3 className="font-semibold sm:col-span-2">{t("new_parent")}</h3>
       <Field label={t("full_name")}><input className="input" value={f.full_name} onChange={set("full_name")} required /></Field>
-      <Field label={t("phone")}><input className="input" dir="ltr" value={f.phone} onChange={set("phone")} /></Field>
+      <Field label={t("phone")}><input className="input" dir="ltr" inputMode="tel" value={f.phone} onChange={set("phone")} /></Field>
       <Field label={t("username")}><input className="input" dir="ltr" autoComplete="off" value={f.username} onChange={set("username")} minLength={3} required /></Field>
       <Field label={t("password")}><PasswordInput autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} required /></Field>
       <div className="sm:col-span-2"><ErrorBox error={error} /></div>
@@ -200,7 +256,7 @@ function StudentForm({ parents, onDone, onCancel }: { parents: Parent[]; onDone:
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
       <h3 className="font-semibold sm:col-span-2">{t("new_student")}</h3>
       <Field label={t("first_name")}><input className="input" value={f.first_name} onChange={set("first_name")} required /></Field>
-      <Field label={t("last_name")}><input className="input" value={f.last_name} onChange={set("last_name")} required /></Field>
+      <Field label={t("last_name")}><input className="input" value={f.last_name} onChange={set("last_name")} /></Field>
       <Field label={t("level")}>
         <select className="input" value={f.level} onChange={set("level")}>
           {LEVELS.map((l) => <option key={l} value={l}>{t(l)}</option>)}

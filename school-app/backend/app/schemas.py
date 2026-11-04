@@ -57,6 +57,8 @@ class ParentIn(BaseModel):
 class ParentUpdate(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=120)
     phone: str | None = Field(default=None, max_length=20)
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    password: str | None = Field(default=None, min_length=6)
 
 
 class ParentOut(UserOut):
@@ -78,6 +80,8 @@ class StudentUpdate(BaseModel):
     level: Level | None = None
     parent_id: int | None = None
     is_active: bool | None = None
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    password: str | None = Field(default=None, min_length=6)
 
 
 class StudentOut(ORM):
@@ -88,6 +92,7 @@ class StudentOut(ORM):
     parent_id: int | None
     user_id: int | None
     is_active: bool
+    username: str | None = None
 
 
 # ---------- Séances ----------

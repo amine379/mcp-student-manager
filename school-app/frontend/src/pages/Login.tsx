@@ -18,14 +18,15 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-indigo-50 to-slate-50 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-10">
       <div className="absolute end-4 top-4">
         <LangSwitch />
       </div>
       <img src="/icon.svg" alt="" className="mb-3 h-16 w-16" />
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">{t("app_name")}</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{t("app_name")}</h1>
+      <p className="mb-6 mt-1 max-w-xs text-center text-sm text-slate-500">{t("tagline")}</p>
       {/* method/action + autocomplete : le navigateur propose d'enregistrer le mot de passe */}
-      <form onSubmit={submit} method="post" action="/login" className="card w-full max-w-sm space-y-4">
+      <form onSubmit={submit} method="post" action="/login" className="card w-full max-w-sm space-y-4 p-5 shadow-lg">
         <h2 className="font-semibold">{t("login")}</h2>
         <Field label={t("username")}>
           <input

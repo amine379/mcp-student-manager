@@ -96,11 +96,11 @@ export function FileThumbs({ files }: { files: string[] }) {
       {files.map((f, i) =>
         isImage(f) ? (
           <a key={f} href={f} target="_blank" rel="noreferrer">
-            <img src={f} alt={`📷 ${i + 1}`} loading="lazy" className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200" />
+            <img src={f} alt={`${i + 1}`} loading="lazy" className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200" />
           </a>
         ) : (
           <a key={f} href={f} target="_blank" rel="noreferrer" className="btn-light">
-            📄 {i + 1}
+            PDF {i + 1}
           </a>
         ),
       )}
@@ -115,6 +115,55 @@ export function Field({ label, children, hint }: { label: string; children: Reac
       {children}
       {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
     </label>
+  );
+}
+
+/** Fenêtre popup : feuille en bas sur mobile, centrée sur grand écran. */
+export function Modal({ title, onClose, children }: { title: ReactNode; onClose: () => void; children: ReactNode }) {
+  const { t } = useI18n();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-xl sm:max-w-lg sm:rounded-2xl"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="flex-1 font-semibold">{title}</h2>
+          <button onClick={onClose} className="btn-light h-9 px-3 text-xs">{t("close")}</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Mot de passe masqué, avec un bouton pour l'afficher. */
+export function PasswordInput(props: Omit<React.InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const { t } = useI18n();
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input {...props} type={show ? "text" : "password"} dir="ltr" className={`input pe-16 ${props.className ?? ""}`} />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute inset-y-0 end-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-800"
+      >
+        {show ? t("hide") : t("show")}
+      </button>
+    </div>
   );
 }
 
@@ -147,6 +196,33 @@ export function useSubmit() {
     }
   };
   return { busy, error, run, setError };
+}
+
+/** Sélecteur d'onglets (segmented control), pleine largeur sur mobile. */
+export function Tabs<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <div className="mb-4 flex rounded-xl bg-slate-100 p-1">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+            value === o.value ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export const todayISO = () => {

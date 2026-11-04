@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models import (
     Attendance, Feedback, Homework, Lesson, Role, SchoolExam, Student, Submission, SubmissionStatus, User,
 )
-from app.routers.lessons import SCHEDULE
+from app.routers.schedule import load_schedule
 from app.security import current_user, my_students
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -46,7 +46,10 @@ async def _admin(db: AsyncSession, today: date) -> dict:
     return {
         "role": "admin",
         "students_per_level": {lvl.value: n for lvl, n in per_level.items()},
-        "today_schedule": SCHEDULE.get(today.weekday(), {}),
+        "today_schedule": [
+            {"start": s.start, "end": s.end, "level": s.level.value, "subject": s.subject.value if s.subject else None}
+            for s in await load_schedule(db) if s.weekday == today.weekday()
+        ],
         "upcoming_exams": [
             {
                 "id": e.id, "date": e.exam_date, "subject": e.subject.value,

@@ -91,7 +91,7 @@ class Lesson(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     level: Mapped[Level] = mapped_column(_enum(Level), index=True)
     date: Mapped[date] = mapped_column(Date, index=True)
-    slot: Mapped[Slot] = mapped_column(_enum(Slot))
+    slot: Mapped[str] = mapped_column(String(20))  # "19:00-20:30"
     subject: Mapped[Subject] = mapped_column(_enum(Subject))
     title: Mapped[str] = mapped_column(String(200))
     notes: Mapped[str | None] = mapped_column(Text)
@@ -192,3 +192,33 @@ class Feedback(Base):
 
     user: Mapped[User | None] = relationship()
     student: Mapped[Student | None] = relationship()
+
+
+class ScheduleSlot(Base):
+    """Créneau de l'emploi du temps hebdomadaire (modifiable par le prof)."""
+
+    __tablename__ = "schedule_slots"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    weekday: Mapped[int] = mapped_column(index=True)  # 0 = lundi … 6 = dimanche
+    start: Mapped[str] = mapped_column(String(5))      # "19:00"
+    end: Mapped[str] = mapped_column(String(5))        # "20:30"
+    level: Mapped[Level] = mapped_column(_enum(Level))
+    subject: Mapped[Subject | None] = mapped_column(_enum(Subject))
+
+
+class FamilyDocument(Base):
+    """Document ajouté par un parent ou un élève pour un enfant."""
+
+    __tablename__ = "family_documents"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    note: Mapped[str | None] = mapped_column(Text)
+    file_path: Mapped[str] = mapped_column(String(300))
+    uploaded_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    student: Mapped[Student] = relationship()
+    uploader: Mapped[User | None] = relationship()

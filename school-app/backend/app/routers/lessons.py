@@ -14,20 +14,6 @@ from app.storage import delete_upload, save_upload
 
 router = APIRouter(prefix="/api", tags=["séances"])
 
-# Emploi du temps fixe (0 = lundi)
-SCHEDULE = {
-    0: {"19:00-20:30": "1AC", "20:30-22:00": "3AC"},
-    1: {"19:00-20:30": "2AC", "20:30-22:00": "3AC"},
-    2: {"19:00-20:30": "1AC", "20:30-22:00": "3AC"},
-    3: {"19:00-20:30": "2AC", "20:30-22:00": "3AC"},
-    4: {"19:00-20:30": "1AC", "20:30-22:00": "2AC"},
-}
-
-
-@router.get("/schedule")
-async def schedule():
-    return SCHEDULE
-
 
 async def _get_lesson(db: AsyncSession, lesson_id: int, user: User) -> Lesson:
     lesson = await db.scalar(

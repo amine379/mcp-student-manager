@@ -1,13 +1,34 @@
 export type Role = "admin" | "parent" | "student";
 export type Level = "1AC" | "2AC" | "3AC";
-export type Slot = "19:00-20:30" | "20:30-22:00";
+export type Slot = string; // "19:00-20:30"
 export type Subject = "math" | "physics" | "svt";
 export type DocType = "course" | "exercise" | "correction";
 export type SubStatus = "pending" | "submitted" | "not_done";
 
 export const LEVELS: Level[] = ["1AC", "2AC", "3AC"];
-export const SLOTS: Slot[] = ["19:00-20:30", "20:30-22:00"];
 export const SUBJECTS: Subject[] = ["math", "physics", "svt"];
+export const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+export interface ScheduleSlot {
+  id: number;
+  weekday: number; // 0 = lundi
+  start: string;
+  end: string;
+  level: Level;
+  subject: Subject | null;
+}
+
+export interface FamilyDoc {
+  id: number;
+  student_id: number;
+  title: string;
+  note: string | null;
+  file_path: string;
+  created_at: string;
+  uploaded_by: number | null;
+  uploaded_by_name: string | null;
+  student_name: string | null;
+}
 export const DOC_TYPES: DocType[] = ["course", "exercise", "correction"];
 
 export interface User {

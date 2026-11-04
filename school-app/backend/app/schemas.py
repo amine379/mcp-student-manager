@@ -1,8 +1,12 @@
 from datetime import date, datetime
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import ContentType, Level, Role, Slot, Subject, SubmissionStatus
+from app.models import ContentType, Level, Role, Subject, SubmissionStatus
+
+HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
+SlotStr = Annotated[str, Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$")]
 
 
 class ORM(BaseModel):
@@ -85,7 +89,7 @@ class StudentOut(ORM):
 class LessonIn(BaseModel):
     level: Level
     date: date
-    slot: Slot
+    slot: SlotStr
     subject: Subject
     title: str
     notes: str | None = None
@@ -103,7 +107,7 @@ class LessonOut(ORM):
     id: int
     level: Level
     date: date
-    slot: Slot
+    slot: str
     subject: Subject
     title: str
     notes: str | None
@@ -125,7 +129,7 @@ class AttendanceRow(BaseModel):
 class AbsenceOut(BaseModel):
     lesson_id: int
     date: date
-    slot: Slot
+    slot: str
     subject: Subject
     title: str
 
@@ -194,6 +198,32 @@ class ExamOut(ORM):
     files: list[str]
     created_at: datetime
     student: StudentOut
+
+
+# ---------- Emploi du temps ----------
+class ScheduleSlotIn(BaseModel):
+    weekday: int = Field(ge=0, le=6)
+    start: str = Field(pattern=HHMM)
+    end: str = Field(pattern=HHMM)
+    level: Level
+    subject: Subject | None = None
+
+
+class ScheduleSlotOut(ScheduleSlotIn, ORM):
+    id: int
+
+
+# ---------- Documents des familles ----------
+class FamilyDocumentOut(ORM):
+    id: int
+    student_id: int
+    title: str
+    note: str | None
+    file_path: str
+    created_at: datetime
+    uploaded_by: int | None
+    uploaded_by_name: str | None = None
+    student_name: str | None = None
 
 
 # ---------- Feedback ----------

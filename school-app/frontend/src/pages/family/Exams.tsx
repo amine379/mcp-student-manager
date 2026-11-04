@@ -109,7 +109,7 @@ function ExamCard({ e, onChange }: { e: Exam; onChange: () => void }) {
       </div>
       <FileThumbs files={e.files} />
       <label className="btn-light cursor-pointer">
-        📷 {t("upload_copy")}
+        {t("upload_copy")}
         <input type="file" accept="image/*,.pdf" multiple className="hidden"
           onChange={(ev) => ev.target.files?.length && upload(Array.from(ev.target.files))} />
       </label>

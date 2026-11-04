@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "../../api";
 import { useI18n } from "../../i18n";
 import { LEVELS, type Level, type Parent, type Student } from "../../types";
-import { Collapsible, Empty, ErrorBox, Field, LevelBadge, Loader, PageTitle, useLoad, useSubmit } from "../../ui";
+import { Collapsible, Empty, ErrorBox, Field, LevelBadge, Loader, PageTitle, PasswordInput, useLoad, useSubmit } from "../../ui";
 
 export default function Students() {
   const { t } = useI18n();
@@ -99,7 +99,7 @@ function ResetPassword({ userId }: { userId: number }) {
   const [done, setDone] = useState(false);
   const { busy, error, run } = useSubmit();
 
-  if (!open) return <button className="btn-light" onClick={() => setOpen(true)}>🔑</button>;
+  if (!open) return <button className="btn-light text-xs" onClick={() => setOpen(true)}>{t("reset_password")}</button>;
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (await run(() => api.post(`/api/users/${userId}/reset-password`, { new_password: pwd }))) {
@@ -109,8 +109,10 @@ function ResetPassword({ userId }: { userId: number }) {
   };
   return (
     <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
-      <input className="input w-40" placeholder={t("reset_password")} minLength={6} value={pwd}
-        onChange={(e) => setPwd(e.target.value)} required autoComplete="new-password" />
+      <div className="w-48">
+        <PasswordInput placeholder={t("reset_password")} minLength={6} value={pwd}
+          onChange={(e) => setPwd(e.target.value)} required autoComplete="new-password" />
+      </div>
       <button className="btn" disabled={busy}>{t("save")}</button>
       <button type="button" className="btn-light" onClick={() => setOpen(false)}>✕</button>
       {done && <span className="text-xs text-emerald-700">{t("saved")}</span>}
@@ -135,7 +137,7 @@ function ParentForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
       <Field label={t("full_name")}><input className="input" value={f.full_name} onChange={set("full_name")} required /></Field>
       <Field label={t("phone")}><input className="input" dir="ltr" value={f.phone} onChange={set("phone")} /></Field>
       <Field label={t("username")}><input className="input" dir="ltr" autoComplete="off" value={f.username} onChange={set("username")} minLength={3} required /></Field>
-      <Field label={t("password")}><input className="input" dir="ltr" autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} required /></Field>
+      <Field label={t("password")}><PasswordInput autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} required /></Field>
       <div className="sm:col-span-2"><ErrorBox error={error} /></div>
       <div className="flex gap-2 sm:col-span-2">
         <button className="btn" disabled={busy}>{t("save")}</button>
@@ -184,7 +186,7 @@ function StudentForm({ parents, onDone, onCancel }: { parents: Parent[]; onDone:
         {t("student_login")} — <span className="font-normal text-slate-400">{t("student_login_hint")}</span>
       </p>
       <Field label={t("username")}><input className="input" dir="ltr" autoComplete="off" value={f.username} onChange={set("username")} minLength={3} /></Field>
-      <Field label={t("password")}><input className="input" dir="ltr" autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} required={!!f.username} /></Field>
+      <Field label={t("password")}><PasswordInput autoComplete="new-password" value={f.password} onChange={set("password")} minLength={6} required={!!f.username} /></Field>
       <div className="sm:col-span-2"><ErrorBox error={error} /></div>
       <div className="flex gap-2 sm:col-span-2">
         <button className="btn" disabled={busy}>{t("save")}</button>

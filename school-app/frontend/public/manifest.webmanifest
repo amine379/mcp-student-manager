@@ -1,6 +1,7 @@
 {
-  "name": "Madrasti",
-  "short_name": "Madrasti",
+  "name": "Amine Cours",
+  "short_name": "Amine Cours",
+  "description": "Cours de soutien — Maths, Physique-Chimie, SVT",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",

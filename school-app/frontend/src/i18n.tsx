@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 const fr = {
-  app_name: "Madrasti",
+  app_name: "Amine Cours",
+  tagline: "Cours de soutien · Maths · Physique-Chimie · SVT",
   login: "Connexion",
   username: "Identifiant",
   password: "Mot de passe",
@@ -55,6 +56,9 @@ const fr = {
   files: "Fichiers",
   saved: "Enregistré ✓",
   child: "Enfant",
+  show: "Voir",
+  hide: "Cacher",
+  close: "Fermer",
   // tableau de bord
   hello: "Bonjour",
   today: "Aujourd'hui",
@@ -66,7 +70,7 @@ const fr = {
   absences: "Absences",
   homeworks_todo: "Devoirs à rendre",
   last_lesson: "Dernière séance",
-  all_done: "Tout est rendu 👍",
+  all_done: "Tout est rendu ✓",
   // élèves
   parents: "Parents",
   new_parent: "Nouveau parent",
@@ -116,6 +120,33 @@ const fr = {
   past_exams: "Contrôles passés",
   upcoming: "À venir",
   all: "Tout",
+  // calendrier
+  calendar: "Calendrier",
+  list_view: "Liste",
+  no_lesson_day: "Pas de séance ce jour-là.",
+  prev_month: "Mois précédent",
+  next_month: "Mois suivant",
+  sessions_count: "séance(s)",
+  // emploi du temps
+  schedule: "Emploi du temps",
+  edit_schedule: "Modifier le planning",
+  add_slot: "Ajouter un créneau",
+  weekday: "Jour",
+  start: "Début",
+  end: "Fin",
+  any_subject: "— Matière libre —",
+  custom_slot: "Autre horaire",
+  no_schedule: "Aucun créneau prévu.",
+  next_class: "Prochaine séance",
+  // documents des familles
+  my_documents: "Documents",
+  family_documents: "Documents des familles",
+  add_family_doc: "Ajouter un document",
+  family_doc_hint: "Partagez un document à travailler avec votre enfant (exercices, résumé, photo…). Le professeur le voit aussi.",
+  added_by: "Ajouté par",
+  see_all: "Tout voir",
+  offline: "Impossible de joindre le serveur. Vérifiez votre connexion internet.",
+  retry: "Réessayer",
   exams_hint: "Indiquez les dates des contrôles à l'école pour que le professeur prépare les révisions.",
   // feedback
   your_message: "Votre message",
@@ -143,13 +174,17 @@ const fr = {
   err_homework_closed: "La correction est publiée, envoi fermé.",
   err_wrong_password: "Mot de passe actuel incorrect.",
   err_invalid_input: "Vérifiez les champs du formulaire.",
+  err_invalid_time_range: "L'heure de fin doit être après l'heure de début.",
+  err_not_your_document: "Vous ne pouvez supprimer que vos propres documents.",
+  err_network: "Connexion impossible. Vérifiez votre internet et réessayez.",
   err_error: "Une erreur est survenue.",
 };
 
 type Key = keyof typeof fr;
 
 const ar: Record<Key, string> = {
-  app_name: "مدرستي",
+  app_name: "دروس أمين",
+  tagline: "دروس الدعم · الرياضيات · الفيزياء والكيمياء · علوم الحياة والأرض",
   login: "تسجيل الدخول",
   username: "اسم المستخدم",
   password: "كلمة المرور",
@@ -199,6 +234,9 @@ const ar: Record<Key, string> = {
   files: "الملفات",
   saved: "تم الحفظ ✓",
   child: "الابن/البنت",
+  show: "إظهار",
+  hide: "إخفاء",
+  close: "إغلاق",
   hello: "مرحبًا",
   today: "اليوم",
   no_class_today: "لا توجد حصة اليوم.",
@@ -209,7 +247,7 @@ const ar: Record<Key, string> = {
   absences: "الغيابات",
   homeworks_todo: "واجبات يجب إرسالها",
   last_lesson: "آخر حصة",
-  all_done: "تم إرسال كل شيء 👍",
+  all_done: "تم إرسال كل شيء ✓",
   parents: "أولياء الأمور",
   new_parent: "ولي أمر جديد",
   new_student: "تلميذ جديد",
@@ -255,6 +293,30 @@ const ar: Record<Key, string> = {
   past_exams: "الفروض السابقة",
   upcoming: "القادمة",
   all: "الكل",
+  calendar: "التقويم",
+  list_view: "القائمة",
+  no_lesson_day: "لا توجد حصة في هذا اليوم.",
+  prev_month: "الشهر السابق",
+  next_month: "الشهر التالي",
+  sessions_count: "حصة",
+  schedule: "استعمال الزمن",
+  edit_schedule: "تعديل استعمال الزمن",
+  add_slot: "إضافة حصة",
+  weekday: "اليوم",
+  start: "البداية",
+  end: "النهاية",
+  any_subject: "— مادة حرة —",
+  custom_slot: "توقيت آخر",
+  no_schedule: "لا توجد حصص مبرمجة.",
+  next_class: "الحصة القادمة",
+  my_documents: "الوثائق",
+  family_documents: "وثائق الأسر",
+  add_family_doc: "إضافة وثيقة",
+  family_doc_hint: "شاركوا وثيقة للعمل عليها مع ابنكم (تمارين، ملخص، صورة…). الأستاذ يراها أيضًا.",
+  added_by: "أضافها",
+  see_all: "عرض الكل",
+  offline: "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.",
+  retry: "إعادة المحاولة",
   exams_hint: "أضيفوا تواريخ الفروض في المدرسة ليحضّر الأستاذ المراجعة.",
   your_message: "رسالتك",
   send: "إرسال",
@@ -279,6 +341,9 @@ const ar: Record<Key, string> = {
   err_homework_closed: "تم نشر التصحيح، الإرسال مغلق.",
   err_wrong_password: "كلمة المرور الحالية غير صحيحة.",
   err_invalid_input: "تحقق من الحقول.",
+  err_invalid_time_range: "يجب أن تكون ساعة النهاية بعد ساعة البداية.",
+  err_not_your_document: "يمكنك حذف وثائقك فقط.",
+  err_network: "تعذر الاتصال. تحقق من الإنترنت وأعد المحاولة.",
   err_error: "حدث خطأ.",
 };
 
@@ -292,6 +357,10 @@ interface I18n {
   t: (k: Key | string) => string;
   err: (e: unknown) => string;
   fmtDate: (iso: string) => string;
+  locale: string;
+  /** 0 = lundi … 6 = dimanche */
+  weekdayName: (i: number, style?: "long" | "short" | "narrow") => string;
+  monthLabel: (year: number, month: number) => string;
 }
 
 const Ctx = createContext<I18n>(null!);
@@ -328,16 +397,33 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     },
     [lang],
   );
+  const locale = lang === "ar" ? "ar-MA" : "fr-MA";
   const fmtDate = useCallback(
     (iso: string) =>
-      new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString(
-        lang === "ar" ? "ar-MA" : "fr-MA",
-        { weekday: "short", day: "numeric", month: "short" },
-      ),
-    [lang],
+      new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString(locale, {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      }),
+    [locale],
+  );
+  // 1er janvier 2024 = lundi
+  const weekdayName = useCallback(
+    (i: number, style: "long" | "short" | "narrow" = "long") =>
+      new Date(2024, 0, 1 + i, 12).toLocaleDateString(locale, { weekday: style }),
+    [locale],
+  );
+  const monthLabel = useCallback(
+    (year: number, month: number) =>
+      new Date(year, month, 1, 12).toLocaleDateString(locale, { month: "long", year: "numeric" }),
+    [locale],
   );
 
-  return <Ctx.Provider value={{ lang, setLang: setLangState, t, err, fmtDate }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ lang, setLang: setLangState, t, err, fmtDate, locale, weekdayName, monthLabel }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export const useI18n = () => useContext(Ctx);

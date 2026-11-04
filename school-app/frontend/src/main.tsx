@@ -4,10 +4,12 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "./index.css";
 import { AuthProvider, useAuth } from "./auth";
-import { I18nProvider } from "./i18n";
+import { I18nProvider, useI18n } from "./i18n";
 import Layout from "./Layout";
 import Account from "./pages/Account";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminDocuments from "./pages/admin/Documents";
+import AdminSchedule from "./pages/admin/Schedule";
 import AdminExams from "./pages/admin/Exams";
 import AdminFeedback from "./pages/admin/Feedback";
 import AdminHomeworkDetail from "./pages/admin/HomeworkDetail";
@@ -22,9 +24,25 @@ import FamilyHomeworks from "./pages/family/Homeworks";
 import FamilyLessons from "./pages/family/Lessons";
 import Login from "./pages/Login";
 
+function Offline() {
+  const { retry, logout } = useAuth();
+  const { t } = useI18n();
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <img src="/icon.svg" alt="" className="h-16 w-16 opacity-80" />
+      <p className="text-slate-600">{t("offline")}</p>
+      <div className="flex gap-2">
+        <button className="btn" onClick={retry}>{t("retry")}</button>
+        <button className="btn-light" onClick={logout}>{t("logout")}</button>
+      </div>
+    </div>
+  );
+}
+
 function AppRoutes() {
-  const { user, ready } = useAuth();
+  const { user, ready, offline } = useAuth();
   if (!ready) return null;
+  if (offline) return <Offline />;
   if (!user) return <Login />;
 
   const admin = user.role === "admin";
@@ -40,6 +58,8 @@ function AppRoutes() {
         {admin && (
           <>
             <Route path="students" element={<Students />} />
+            <Route path="schedule" element={<AdminSchedule />} />
+            <Route path="documents" element={<AdminDocuments />} />
             <Route path="lessons/:id" element={<AdminLessonDetail />} />
             <Route path="homeworks/:id" element={<AdminHomeworkDetail />} />
           </>

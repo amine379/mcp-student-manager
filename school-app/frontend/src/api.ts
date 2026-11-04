@@ -39,7 +39,17 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     payload = JSON.stringify(body);
   }
 
-  const res = await fetch(path, { method, headers, body: payload });
+  // Délai max : un réseau mobile qui ne répond pas ne doit pas bloquer l'écran indéfiniment
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), body instanceof FormData ? 120_000 : 15_000);
+  let res: Response;
+  try {
+    res = await fetch(path, { method, headers, body: payload, signal: ctrl.signal });
+  } catch {
+    throw new ApiError(0, "network");
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 && path !== "/api/auth/login") onUnauthorized();
   if (!res.ok) {
     let code = "error";

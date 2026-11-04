@@ -61,11 +61,11 @@ function HomeworkCard({ h, child, onChange }: { h: Homework; child: Student; onC
 
       <div className="mt-3 flex flex-wrap gap-2">
         {h.statement_path && (
-          <a href={h.statement_path} target="_blank" rel="noreferrer" className="btn-light">📄 {t("see_statement")}</a>
+          <a href={h.statement_path} target="_blank" rel="noreferrer" className="btn-light">{t("see_statement")}</a>
         )}
         {h.correction_path && (
           <a href={h.correction_path} target="_blank" rel="noreferrer" className="btn-light bg-emerald-50 text-emerald-800">
-            ✅ {t("see_correction")}
+            {t("see_correction")}
           </a>
         )}
       </div>
@@ -80,7 +80,7 @@ function HomeworkCard({ h, child, onChange }: { h: Homework; child: Student; onC
       {!closed && (
         <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
           <label className="btn-light cursor-pointer">
-            📷 {sub?.files.length ? t("add_more") : t("take_photo")}
+            {sub?.files.length ? t("add_more") : t("take_photo")}
             <input
               type="file"
               accept="image/*,.pdf"

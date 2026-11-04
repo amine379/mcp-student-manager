@@ -9,7 +9,9 @@ from sqlalchemy import select
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import Role, User
-from app.routers import accounts, auth, dashboard, exams, feedback, homeworks, lessons
+from app.routers import (
+    accounts, auth, dashboard, exams, family_documents, feedback, homeworks, lessons, schedule,
+)
 from app.security import hash_password
 
 
@@ -25,6 +27,7 @@ async def _init_db() -> None:
                 full_name="Professeur",
             ))
             await db.commit()
+        await schedule.seed_schedule(db)
 
 
 @asynccontextmanager
@@ -34,7 +37,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Madrasti API", lifespan=lifespan)
+app = FastAPI(title="Amine Cours API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,7 +47,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, accounts, lessons, homeworks, exams, feedback, dashboard):
+for r in (auth, accounts, lessons, homeworks, exams, feedback, dashboard, schedule, family_documents):
     app.include_router(r.router)
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)

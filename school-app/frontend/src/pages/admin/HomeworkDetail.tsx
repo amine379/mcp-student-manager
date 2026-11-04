@@ -49,7 +49,7 @@ export default function AdminHomeworkDetail() {
             <h1 className="mt-2 text-xl font-bold">{h.title}</h1>
             {h.description && <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{h.description}</p>}
             {h.statement_path && (
-              <a href={h.statement_path} target="_blank" rel="noreferrer" className="btn-light mt-3">📄 {t("see_statement")}</a>
+              <a href={h.statement_path} target="_blank" rel="noreferrer" className="btn-light mt-3">{t("see_statement")}</a>
             )}
           </div>
 

@@ -54,6 +54,11 @@ class ParentIn(BaseModel):
     password: str = Field(min_length=6)
 
 
+class ParentUpdate(BaseModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=120)
+    phone: str | None = Field(default=None, max_length=20)
+
+
 class ParentOut(UserOut):
     children: list["StudentOut"] = []
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import Level, Role, Student, User
-from app.schemas import ParentIn, ParentOut, PasswordResetIn, StudentIn, StudentOut, StudentUpdate
+from app.schemas import ParentIn, ParentOut, ParentUpdate, PasswordResetIn, StudentIn, StudentOut, StudentUpdate
 from app.security import admin_user, current_user, hash_password, my_students
 
 router = APIRouter(prefix="/api", tags=["comptes"])
@@ -43,6 +43,19 @@ async def create_parent(data: ParentIn, db: AsyncSession = Depends(get_db)):
         phone=data.phone,
     )
     db.add(parent)
+    await db.commit()
+    await db.refresh(parent, ["children"])
+    return parent
+
+
+@router.patch("/parents/{parent_id}", response_model=ParentOut, dependencies=[Depends(admin_user)])
+async def update_parent(parent_id: int, data: ParentUpdate, db: AsyncSession = Depends(get_db)):
+    parent = await db.get(User, parent_id)
+    if parent is None or parent.role != Role.PARENT:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "parent_not_found")
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(parent, key, value or None)
     await db.commit()
     await db.refresh(parent, ["children"])
     return parent

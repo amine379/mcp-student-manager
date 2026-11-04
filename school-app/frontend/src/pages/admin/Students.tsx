@@ -58,7 +58,8 @@ export default function Students() {
                 <div key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
                   <div className="min-w-40 flex-1">
                     <p className="font-medium">{p.full_name}</p>
-                    <p className="text-xs text-slate-500" dir="ltr">@{p.username} {p.phone && `· ${p.phone}`}</p>
+                    <p className="text-xs text-slate-500" dir="ltr">@{p.username}</p>
+                    <PhoneEdit parent={p} onChange={reloadAll} />
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {p.children.map((c) => (
@@ -89,6 +90,35 @@ function StudentRow({ s, parentName, onChange }: { s: Student; parentName?: stri
       {s.user_id && <ResetPassword userId={s.user_id} />}
       <button className="btn-light" onClick={toggle}>{s.is_active ? t("deactivate") : t("reactivate")}</button>
     </div>
+  );
+}
+
+function PhoneEdit({ parent, onChange }: { parent: Parent; onChange: () => void }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState(parent.phone ?? "");
+  const { busy, run } = useSubmit();
+
+  if (!open)
+    return (
+      <button className="text-xs text-indigo-700 hover:underline" onClick={() => setOpen(true)}>
+        {parent.phone ? <span dir="ltr">{parent.phone}</span> : `+ ${t("phone")}`}
+      </button>
+    );
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (await run(() => api.patch(`/api/parents/${parent.id}`, { phone: phone || null }))) {
+      setOpen(false);
+      onChange();
+    }
+  };
+  return (
+    <form onSubmit={submit} className="mt-1 flex items-center gap-1">
+      <input className="input h-8 w-36 py-1 text-xs" dir="ltr" inputMode="tel" placeholder="0612345678"
+        value={phone} onChange={(e) => setPhone(e.target.value)} autoFocus />
+      <button className="btn h-8 px-2 py-1 text-xs" disabled={busy}>{t("save")}</button>
+      <button type="button" className="btn-light h-8 px-2 py-1 text-xs" onClick={() => setOpen(false)}>✕</button>
+    </form>
   );
 }
 

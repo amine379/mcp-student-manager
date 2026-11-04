@@ -3,10 +3,50 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
-import type { Homework, SubStatus, SubmissionRow } from "../../types";
-import { ErrorBox, FileThumbs, LevelBadge, Loader, StatusBadge, SubjectBadge, useLoad, useSubmit } from "../../ui";
+import type { Homework, Parent, SubStatus, SubmissionRow } from "../../types";
+import { ErrorBox, FileThumbs, LevelBadge, Loader, StatusBadge, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
 
 const NEXT_STATUS: Record<SubStatus, SubStatus> = { pending: "submitted", submitted: "not_done", not_done: "pending" };
+
+/** Boutons WhatsApp pour prévenir les parents du niveau concerné par le devoir. */
+function NotifyParents({ h, parents }: { h: Homework; parents: Parent[] }) {
+  const { t, fmtDate } = useI18n();
+  const recipients = parents.filter((p) => p.children.some((c) => c.level === h.level));
+  const published = !!h.correction_path;
+
+  const message = (name: string) => {
+    const key = published ? "wa_correction_text" : "wa_homework_text";
+    return t(key)
+      .replace("{name}", name)
+      .replace("{subject}", t(h.subject))
+      .replace("{title}", h.title)
+      .replace("{date}", fmtDate(h.due_date));
+  };
+
+  return (
+    <section className="card">
+      <h2 className="mb-1 font-semibold">{t("notify_parents")}</h2>
+      <p className="mb-3 text-xs text-slate-500">
+        {published ? t("notify_correction_hint") : t("notify_homework_hint")}
+      </p>
+      {recipients.length === 0 ? (
+        <p className="text-sm text-slate-400">{t("empty")}</p>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {recipients.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
+              <span className="min-w-32 flex-1">
+                {p.full_name}
+                {p.phone && <span className="ms-1 text-xs text-slate-400" dir="ltr">{p.phone}</span>}
+              </span>
+              <WhatsAppButton phone={p.phone} text={message(p.full_name)} label={t("wa_send")} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
 
 export default function AdminHomeworkDetail() {
   const { id } = useParams();
@@ -14,6 +54,7 @@ export default function AdminHomeworkDetail() {
   const navigate = useNavigate();
   const hw = useLoad(() => api.get<Homework>(`/api/homeworks/${id}`), [id]);
   const subs = useLoad(() => api.get<SubmissionRow[]>(`/api/homeworks/${id}/submissions`), [id]);
+  const parents = useLoad(() => api.get<Parent[]>("/api/parents"));
   const [correction, setCorrection] = useState<File | null>(null);
   const { busy, error, run } = useSubmit();
 
@@ -66,6 +107,8 @@ export default function AdminHomeworkDetail() {
               <button className="btn" disabled={busy || !correction} onClick={publish}>{t("publish_correction")}</button>
             </div>
           </section>
+
+          <NotifyParents h={h} parents={parents.data ?? []} />
 
           <section className="card">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

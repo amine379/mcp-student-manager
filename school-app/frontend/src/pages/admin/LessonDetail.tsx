@@ -3,14 +3,52 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
-import { DOC_TYPES, type AttendanceRow, type DocType, type Lesson } from "../../types";
-import { ErrorBox, Field, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit } from "../../ui";
+import { DOC_TYPES, type AttendanceRow, type DocType, type Lesson, type Parent } from "../../types";
+import { ErrorBox, Field, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
+
+/** Boutons WhatsApp pour prévenir les parents du niveau qu'un contenu a été publié. */
+function NotifyParents({ lesson, parents }: { lesson: Lesson; parents: Parent[] }) {
+  const { t, fmtDate } = useI18n();
+  const recipients = parents.filter((p) => p.children.some((c) => c.level === lesson.level));
+
+  const message = (name: string) =>
+    t("wa_lesson_text")
+      .replace("{name}", name)
+      .replace("{subject}", t(lesson.subject))
+      .replace("{title}", lesson.title)
+      .replace("{date}", fmtDate(lesson.date));
+
+  if (lesson.documents.length === 0) return null;
+
+  return (
+    <section className="card">
+      <h2 className="mb-1 font-semibold">{t("notify_parents")}</h2>
+      <p className="mb-3 text-xs text-slate-500">{t("notify_lesson_hint")}</p>
+      {recipients.length === 0 ? (
+        <p className="text-sm text-slate-400">{t("empty")}</p>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {recipients.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
+              <span className="min-w-32 flex-1">
+                {p.full_name}
+                {p.phone && <span className="ms-1 text-xs text-slate-400" dir="ltr">{p.phone}</span>}
+              </span>
+              <WhatsAppButton phone={p.phone} text={message(p.full_name)} label={t("wa_send")} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
 
 export default function AdminLessonDetail() {
   const { id } = useParams();
   const { t, fmtDate } = useI18n();
   const navigate = useNavigate();
   const lesson = useLoad(() => api.get<Lesson>(`/api/lessons/${id}`), [id]);
+  const parents = useLoad(() => api.get<Parent[]>("/api/parents"));
 
   const remove = async () => {
     if (!confirm(t("confirm_delete"))) return;
@@ -38,6 +76,8 @@ export default function AdminLessonDetail() {
             <Documents lesson={l} onChange={lesson.reload} />
             <Attendance lessonId={l.id} />
           </div>
+
+          <NotifyParents lesson={l} parents={parents.data ?? []} />
         </div>
       )}
     </Loader>

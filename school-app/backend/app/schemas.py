@@ -236,6 +236,18 @@ class FamilyDocumentOut(ORM):
     student_name: str | None = None
 
 
+# ---------- Messages (prof -> parent/élève précis) ----------
+class MessageOut(ORM):
+    id: int
+    body: str
+    attachment_path: str | None
+    is_read: bool
+    created_at: datetime
+    sender_name: str | None = None
+    recipient_id: int
+    recipient_name: str | None = None
+
+
 # ---------- Feedback ----------
 class FeedbackIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)

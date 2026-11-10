@@ -16,12 +16,14 @@ import AdminHomeworkDetail from "./pages/admin/HomeworkDetail";
 import AdminHomeworks from "./pages/admin/Homeworks";
 import AdminLessonDetail from "./pages/admin/LessonDetail";
 import AdminLessons from "./pages/admin/Lessons";
+import AdminMessages from "./pages/admin/Messages";
 import Students from "./pages/admin/Students";
 import FamilyDashboard from "./pages/family/Dashboard";
 import FamilyExams from "./pages/family/Exams";
 import FamilyFeedback from "./pages/family/Feedback";
 import FamilyHomeworks from "./pages/family/Homeworks";
 import FamilyLessons from "./pages/family/Lessons";
+import FamilyMessages from "./pages/family/Messages";
 import Login from "./pages/Login";
 
 function Offline() {
@@ -54,6 +56,7 @@ function AppRoutes() {
         <Route path="homeworks" element={admin ? <AdminHomeworks /> : <FamilyHomeworks />} />
         <Route path="exams" element={admin ? <AdminExams /> : <FamilyExams />} />
         <Route path="feedback" element={admin ? <AdminFeedback /> : <FamilyFeedback />} />
+        <Route path="messages" element={admin ? <AdminMessages /> : <FamilyMessages />} />
         <Route path="account" element={<Account />} />
         {admin && (
           <>

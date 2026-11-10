@@ -200,6 +200,23 @@ class Feedback(Base):
     student: Mapped[Student | None] = relationship()
 
 
+class Message(Base):
+    """Message direct envoyé par le prof à un parent ou élève précis, avec pièce jointe optionnelle."""
+
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    recipient_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    attachment_path: Mapped[str | None] = mapped_column(String(300))
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    sender: Mapped[User | None] = relationship(foreign_keys=[sender_id])
+    recipient: Mapped[User] = relationship(foreign_keys=[recipient_id])
+
+
 class ScheduleSlot(Base):
     """Créneau de l'emploi du temps hebdomadaire (modifiable par le prof)."""
 

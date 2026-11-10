@@ -132,6 +132,17 @@ export interface Exam {
   student: Student;
 }
 
+export interface Message {
+  id: number;
+  body: string;
+  attachment_path: string | null;
+  is_read: boolean;
+  created_at: string;
+  sender_name: string | null;
+  recipient_id: number;
+  recipient_name: string | null;
+}
+
 export interface Feedback {
   id: number;
   message: string;

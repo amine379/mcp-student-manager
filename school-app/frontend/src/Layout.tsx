@@ -13,6 +13,7 @@ const ICONS = {
   pen: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   calendar: "M4 6h16v15H4zM4 10h16M8 3v4M16 3v4",
   message: "M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12",
+  mail: "M4 5h16v14H4zM4 6l8 7 8-7",
 } as const;
 
 type IconName = keyof typeof ICONS;
@@ -31,6 +32,7 @@ const ADMIN_NAV: [string, string, IconName][] = [
   ["/lessons", "nav_lessons", "book"],
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
+  ["/messages", "nav_messages", "mail"],
   ["/feedback", "nav_feedback", "message"],
 ];
 
@@ -39,6 +41,7 @@ const FAMILY_NAV: [string, string, IconName][] = [
   ["/lessons", "nav_courses", "book"],
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
+  ["/messages", "nav_messages", "mail"],
   ["/feedback", "nav_feedback", "message"],
 ];
 

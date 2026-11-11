@@ -243,26 +243,9 @@ class MessageOut(ORM):
     attachment_path: str | None
     is_read: bool
     created_at: datetime
+    sender_id: int | None
     sender_name: str | None = None
     recipient_id: int
     recipient_name: str | None = None
 
 
-# ---------- Feedback ----------
-class FeedbackIn(BaseModel):
-    message: str = Field(min_length=1, max_length=2000)
-    student_id: int | None = None
-
-
-class FeedbackReplyIn(BaseModel):
-    reply: str = Field(min_length=1, max_length=2000)
-
-
-class FeedbackOut(ORM):
-    id: int
-    message: str
-    reply: str | None
-    is_read: bool
-    created_at: datetime
-    author: str | None = None
-    student_name: str | None = None

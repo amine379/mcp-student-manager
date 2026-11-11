@@ -17,7 +17,7 @@ export default function AdminLessons() {
   const row = (l: Lesson) => (
     <Link to={`/lessons/${l.id}`} className="block rounded-xl p-3 ring-1 ring-slate-200 hover:bg-slate-50">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span dir="ltr" className="font-mono text-slate-500">{l.slot}</span>
+        <span dir="ltr" className="tabular-nums text-slate-500">{l.slot}</span>
         <LevelBadge level={l.level} />
         <SubjectBadge subject={l.subject} />
       </div>
@@ -28,7 +28,7 @@ export default function AdminLessons() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>{t("nav_lessons")}</PageTitle>
+      <PageTitle hint={t("hint_lessons_admin")}>{t("nav_lessons")}</PageTitle>
       <Collapsible label={t("new_lesson")}>{(close) => <LessonForm onCancel={close} />}</Collapsible>
 
       <div className="flex flex-wrap items-center gap-2">

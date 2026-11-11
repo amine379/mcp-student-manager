@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
+/* Palette inspirée de Musemind (Dribbble) : encre douce + pastels pleins */
+@theme {
+  --color-ink: #1a1a1a;
+  --color-lavender: #9e9bff;
+  --color-lavender-soft: #e7e6ff;
+  --color-lilac: #e9b0f8;
+  --color-lilac-soft: #f9e8fd;
+  --color-mint: #7cd182;
+  --color-mint-soft: #ddf3df;
+  --color-sun: #f9c668;
+  --color-sun-soft: #fdf0d3;
+  --font-sans: "Urbanist", "Segoe UI", Tahoma, system-ui, sans-serif;
+}
+
 @layer components {
   .card {
-    @apply rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition;
+    @apply rounded-3xl border border-ink bg-white p-4 transition;
   }
   /* 44px minimum : cible tactile confortable sur mobile */
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.98] disabled:opacity-50 disabled:active:scale-100;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white transition hover:bg-black active:scale-[.98] disabled:opacity-50 disabled:active:scale-100;
   }
   .btn-light {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 active:scale-[.98] disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-neutral-200 active:scale-[.98] disabled:opacity-50;
   }
   .btn-danger {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 active:scale-[.98];
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 active:scale-[.98];
   }
   /* 16px sur mobile : empêche le zoom automatique d'iOS au focus */
   .input {
-    @apply min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:text-sm;
+    @apply min-h-11 w-full rounded-2xl border-0 bg-neutral-100 px-4 py-2 text-base text-ink placeholder:text-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-lavender sm:text-sm;
   }
   .label {
-    @apply mb-1 block text-xs font-medium text-slate-600;
+    @apply mb-1 block text-xs font-semibold text-neutral-600;
   }
   .badge {
-    @apply inline-block rounded-full px-2 py-0.5 text-xs font-medium;
+    @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-ink;
   }
 }
 
@@ -32,7 +46,7 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-white font-sans text-ink antialiased;
 }
 
 [dir="rtl"] body {

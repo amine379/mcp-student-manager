@@ -5,14 +5,14 @@ import WeekSchedule from "../../components/WeekSchedule";
 import { useAuth } from "../../auth";
 import { useI18n } from "../../i18n";
 import { LEVELS, type FamilyDoc, type Level, type ScheduleSlot, type Subject } from "../../types";
-import { Empty, LevelBadge, Loader, SubjectBadge, useLoad } from "../../ui";
+import { Empty, Glyph, LevelBadge, Loader, StatTile, SubjectBadge, SubjectChip, useLoad } from "../../ui";
 
 interface AdminDash {
   students_per_level: Partial<Record<Level, number>>;
   today_schedule: { start: string; end: string; level: Level; subject: Subject | null }[];
   upcoming_exams: { id: number; date: string; subject: Subject; student: string; level: Level }[];
   open_homeworks: { id: number; title: string; level: Level; due_date: string; submitted: number; total: number }[];
-  unread_feedback: number;
+  unread_messages: number;
 }
 
 export default function AdminDashboard() {
@@ -26,20 +26,31 @@ export default function AdminDashboard() {
     <Loader state={state}>
       {(d) => (
         <div className="space-y-4">
-          <h1 className="text-xl font-bold text-slate-900">{t("hello")}, {user?.full_name}</h1>
+          <div className="rounded-3xl border border-ink bg-lavender p-5 text-ink">
+            <p className="text-sm text-ink/70">{t("hello")}</p>
+            <h1 className="text-2xl font-bold">{user?.full_name}</h1>
+            <p className="mt-2 inline-block rounded-full bg-white px-3 py-1 text-sm font-semibold">
+              {d.today_schedule.length === 0 ? t("no_class_today") : `${d.today_schedule.length} ${t("sessions_today")}`}
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {LEVELS.map((l) => (
-              <div key={l} className="card p-3">
-                <LevelBadge level={l} />
-                <p className="mt-2 text-2xl font-bold">{d.students_per_level[l] ?? 0}</p>
-                <p className="text-xs text-slate-500">{t("students_count")}</p>
-              </div>
+            {LEVELS.map((l, i) => (
+              <StatTile
+                key={l}
+                tone={(["lavender", "sun", "lilac"] as const)[i]}
+                value={d.students_per_level[l] ?? 0}
+                label={t("students_count")}
+                badge={<span className="badge bg-white">{l}</span>}
+              />
             ))}
-            <Link to="/feedback" className="card p-3 hover:ring-indigo-300">
-              <span className="badge bg-rose-100 text-rose-700">{t("nav_feedback")}</span>
-              <p className="mt-2 text-2xl font-bold">{d.unread_feedback}</p>
-              <p className="text-xs text-slate-500">{t("unread_feedback")}</p>
+            <Link to="/messages" className="active:scale-95">
+              <StatTile
+                tone="mint"
+                value={d.unread_messages}
+                label={t("unread_messages")}
+                badge={<span className="badge bg-white">{t("nav_messages")}</span>}
+              />
             </Link>
           </div>
 
@@ -53,11 +64,13 @@ export default function AdminDashboard() {
             ) : (
               <ul className="space-y-2">
                 {d.today_schedule.map((s) => (
-                  <li key={s.start} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3 text-sm">
-                    <span dir="ltr" className="font-mono font-semibold text-slate-700">{s.start}–{s.end}</span>
+                  <li key={s.start} className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-2.5 text-sm">
+                    {s.subject ? <SubjectChip subject={s.subject} size={36} /> : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white"><Glyph name="clock" className="h-4 w-4" /></span>}
+                    <span className="min-w-0 flex-1">
+                      <span dir="ltr" className="block font-bold tabular-nums">{s.start}–{s.end}</span>
+                      <span className="block truncate text-xs text-neutral-500">{t(s.level)}</span>
+                    </span>
                     <LevelBadge level={s.level} />
-                    <span className="text-slate-600">{t(s.level)}</span>
-                    {s.subject && <SubjectBadge subject={s.subject} />}
                   </li>
                 ))}
               </ul>
@@ -79,11 +92,11 @@ export default function AdminDashboard() {
                 <ul className="divide-y divide-slate-100">
                   {d.open_homeworks.map((h) => (
                     <li key={h.id}>
-                      <Link to={`/homeworks/${h.id}`} className="flex items-center gap-2 py-2.5 text-sm hover:text-indigo-700">
+                      <Link to={`/homeworks/${h.id}`} className="flex items-center gap-2 py-2.5 text-sm hover:underline">
                         <LevelBadge level={h.level} />
                         <span className="min-w-0 flex-1 truncate">{h.title}</span>
                         <span className="text-xs text-slate-500">{fmtDate(h.due_date)}</span>
-                        <span className="badge bg-emerald-50 text-emerald-700">{h.submitted}/{h.total}</span>
+                        <span className="badge bg-mint-soft">{h.submitted}/{h.total}</span>
                       </Link>
                     </li>
                   ))}
@@ -111,14 +124,14 @@ export default function AdminDashboard() {
           <section className="card">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="font-semibold">{t("family_documents")}</h2>
-              <Link to="/documents" className="text-xs font-medium text-indigo-700">{t("see_all")} →</Link>
+              <Link to="/documents" className="text-xs font-medium font-semibold text-ink">{t("see_all")} →</Link>
             </div>
             <Loader state={docs}>
               {(list) => list.length === 0 ? <Empty /> : (
                 <ul className="divide-y divide-slate-100">
                   {list.slice(0, 5).map((doc) => (
                     <li key={doc.id}>
-                      <a href={doc.file_path} target="_blank" rel="noreferrer" className="flex items-center gap-2 py-2.5 text-sm hover:text-indigo-700">
+                      <a href={doc.file_path} target="_blank" rel="noreferrer" className="flex items-center gap-2 py-2.5 text-sm hover:underline">
                         <span className="min-w-0 flex-1 truncate font-medium">{doc.title}</span>
                         <span className="truncate text-xs text-slate-500">{doc.student_name}</span>
                         <span className="text-xs text-slate-400">{fmtDate(doc.created_at)}</span>

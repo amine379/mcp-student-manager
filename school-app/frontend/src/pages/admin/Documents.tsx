@@ -8,8 +8,8 @@ export default function AdminDocuments() {
   const { t } = useI18n();
   return (
     <div className="space-y-4">
-      <Link to="/" className="text-sm text-indigo-700">← {t("back")}</Link>
-      <PageTitle>{t("family_documents")}</PageTitle>
+      <Link to="/" className="text-sm font-semibold text-ink">← {t("back")}</Link>
+      <PageTitle hint={t("hint_documents_admin")}>{t("family_documents")}</PageTitle>
       <FamilyDocuments />
     </div>
   );

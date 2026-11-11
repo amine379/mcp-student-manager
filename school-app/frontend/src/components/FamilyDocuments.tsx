@@ -37,7 +37,7 @@ export default function FamilyDocuments({ child }: { child?: Student | null }) {
                   )}
                 </a>
                 <div className="min-w-0 flex-1">
-                  <a href={d.file_path} target="_blank" rel="noreferrer" className="block truncate font-medium hover:text-indigo-700">
+                  <a href={d.file_path} target="_blank" rel="noreferrer" className="block truncate font-medium hover:underline">
                     {d.title}
                   </a>
                   {d.note && <p className="text-sm text-slate-600">{d.note}</p>}

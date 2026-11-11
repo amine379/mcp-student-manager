@@ -138,17 +138,8 @@ export interface Message {
   attachment_path: string | null;
   is_read: boolean;
   created_at: string;
+  sender_id: number | null;
   sender_name: string | null;
   recipient_id: number;
   recipient_name: string | null;
-}
-
-export interface Feedback {
-  id: number;
-  message: string;
-  reply: string | null;
-  is_read: boolean;
-  created_at: string;
-  author: string | null;
-  student_name: string | null;
 }

@@ -11,7 +11,6 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminDocuments from "./pages/admin/Documents";
 import AdminSchedule from "./pages/admin/Schedule";
 import AdminExams from "./pages/admin/Exams";
-import AdminFeedback from "./pages/admin/Feedback";
 import AdminHomeworkDetail from "./pages/admin/HomeworkDetail";
 import AdminHomeworks from "./pages/admin/Homeworks";
 import AdminLessonDetail from "./pages/admin/LessonDetail";
@@ -19,8 +18,8 @@ import AdminLessons from "./pages/admin/Lessons";
 import AdminMessages from "./pages/admin/Messages";
 import Students from "./pages/admin/Students";
 import FamilyDashboard from "./pages/family/Dashboard";
+import FamilyDocuments from "./pages/family/Documents";
 import FamilyExams from "./pages/family/Exams";
-import FamilyFeedback from "./pages/family/Feedback";
 import FamilyHomeworks from "./pages/family/Homeworks";
 import FamilyLessons from "./pages/family/Lessons";
 import FamilyMessages from "./pages/family/Messages";
@@ -55,17 +54,19 @@ function AppRoutes() {
         <Route path="lessons" element={admin ? <AdminLessons /> : <FamilyLessons />} />
         <Route path="homeworks" element={admin ? <AdminHomeworks /> : <FamilyHomeworks />} />
         <Route path="exams" element={admin ? <AdminExams /> : <FamilyExams />} />
-        <Route path="feedback" element={admin ? <AdminFeedback /> : <FamilyFeedback />} />
         <Route path="messages" element={admin ? <AdminMessages /> : <FamilyMessages />} />
         <Route path="account" element={<Account />} />
-        {admin && (
+        {admin ? (
           <>
             <Route path="students" element={<Students />} />
             <Route path="schedule" element={<AdminSchedule />} />
             <Route path="documents" element={<AdminDocuments />} />
+            <Route path="messages/:id" element={<AdminMessages />} />
             <Route path="lessons/:id" element={<AdminLessonDetail />} />
             <Route path="homeworks/:id" element={<AdminHomeworkDetail />} />
           </>
+        ) : (
+          <Route path="documents" element={<FamilyDocuments />} />
         )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

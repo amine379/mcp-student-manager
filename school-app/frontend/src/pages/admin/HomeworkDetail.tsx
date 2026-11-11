@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
 import type { Homework, Parent, SubStatus, SubmissionRow } from "../../types";
-import { ErrorBox, FileThumbs, LevelBadge, Loader, StatusBadge, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
+import { ErrorBox, FileButton, FileThumbs, LevelBadge, Loader, StatusBadge, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
 
 const NEXT_STATUS: Record<SubStatus, SubStatus> = { pending: "submitted", submitted: "not_done", not_done: "pending" };
 
@@ -79,7 +79,7 @@ export default function AdminHomeworkDetail() {
     <Loader state={hw}>
       {(h) => (
         <div className="space-y-4">
-          <Link to="/homeworks" className="text-sm text-indigo-700">← {t("back")}</Link>
+          <Link to="/homeworks" className="text-sm font-semibold text-ink">← {t("back")}</Link>
           <div className="card">
             <div className="flex flex-wrap items-center gap-2">
               <LevelBadge level={h.level} />
@@ -98,12 +98,12 @@ export default function AdminHomeworkDetail() {
             <h2 className="mb-2 font-semibold">{t("correction")}</h2>
             {h.correction_path ? (
               <p className="mb-3 text-sm">
-                <span className="badge bg-emerald-100 text-emerald-800">✓ {t("correction_published")}</span>{" "}
-                <a href={h.correction_path} target="_blank" rel="noreferrer" className="text-indigo-700 hover:underline">{t("see_correction")}</a>
+                <span className="badge bg-mint">✓ {t("correction_published")}</span>{" "}
+                <a href={h.correction_path} target="_blank" rel="noreferrer" className="font-semibold text-ink hover:underline">{t("see_correction")}</a>
               </p>
             ) : null}
             <div className="flex flex-wrap items-center gap-2">
-              <input type="file" accept=".pdf,image/*" className="text-sm" onChange={(e) => setCorrection(e.target.files?.[0] ?? null)} />
+              <FileButton file={correction} onChange={setCorrection} accept=".pdf,image/*" />
               <button className="btn" disabled={busy || !correction} onClick={publish}>{t("publish_correction")}</button>
             </div>
           </section>

@@ -59,7 +59,7 @@ export default function AdminSchedule() {
 
   return (
     <div className="space-y-4">
-      <Link to="/" className="text-sm text-indigo-700">← {t("back")}</Link>
+      <Link to="/" className="text-sm font-semibold text-ink">← {t("back")}</Link>
       <PageTitle>{t("edit_schedule")}</PageTitle>
 
       <Loader state={current}>

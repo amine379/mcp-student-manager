@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
 import { DOC_TYPES, type AttendanceRow, type DocType, type Lesson, type Parent } from "../../types";
-import { ErrorBox, Field, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
+import { ErrorBox, Field, FileButton, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
 
 /** Boutons WhatsApp pour prévenir les parents du niveau qu'un contenu a été publié. */
 function NotifyParents({ lesson, parents }: { lesson: Lesson; parents: Parent[] }) {
@@ -60,7 +60,7 @@ export default function AdminLessonDetail() {
     <Loader state={lesson}>
       {(l) => (
         <div className="space-y-4">
-          <Link to="/lessons" className="text-sm text-indigo-700">← {t("back")}</Link>
+          <Link to="/lessons" className="text-sm font-semibold text-ink">← {t("back")}</Link>
           <div className="card">
             <div className="flex flex-wrap items-center gap-2">
               <LevelBadge level={l.level} />
@@ -119,7 +119,7 @@ function Documents({ lesson, onChange }: { lesson: Lesson; onChange: () => void 
           {lesson.documents.map((d) => (
             <li key={d.id} className="flex items-center gap-2 text-sm">
               <span className="badge bg-slate-100 text-slate-600">{t(d.type)}</span>
-              <a href={d.file_path} target="_blank" rel="noreferrer" className="flex-1 truncate text-indigo-700 hover:underline">{d.title}</a>
+              <a href={d.file_path} target="_blank" rel="noreferrer" className="flex-1 truncate font-semibold text-ink hover:underline">{d.title}</a>
               <button className="text-xs text-rose-600" onClick={() => remove(d.id)}>✕</button>
             </li>
           ))}
@@ -134,7 +134,7 @@ function Documents({ lesson, onChange }: { lesson: Lesson; onChange: () => void 
           <input className="input" placeholder={t("title")} value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <Field label={t("file")}>
-          <input type="file" accept=".pdf,image/*" className="text-sm" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required />
+          <FileButton file={file} onChange={setFile} accept=".pdf,image/*" />
         </Field>
         <ErrorBox error={error} />
         <button className="btn" disabled={busy || !file}>{t("add")}</button>

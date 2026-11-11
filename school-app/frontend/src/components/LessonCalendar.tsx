@@ -5,9 +5,9 @@ import type { Lesson, Subject } from "../types";
 import { Modal, todayISO } from "../ui";
 
 const DOT: Record<Subject, string> = {
-  math: "bg-indigo-500",
-  physics: "bg-orange-500",
-  svt: "bg-emerald-500",
+  math: "bg-lavender",
+  physics: "bg-sun",
+  svt: "bg-mint",
 };
 
 const iso = (y: number, m: number, d: number) =>
@@ -91,8 +91,8 @@ export default function LessonCalendar({
               disabled={ls.length === 0}
               onClick={() => setOpen(day)}
               className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl text-sm transition ${
-                ls.length ? "bg-indigo-50 font-semibold text-indigo-900 hover:bg-indigo-100" : "text-slate-400"
-              } ${isToday ? "ring-2 ring-indigo-400" : ""}`}
+                ls.length ? "bg-lavender-soft font-semibold text-ink hover:bg-lavender" : "text-slate-400"
+              } ${isToday ? "ring-2 ring-ink" : ""}`}
             >
               {Number(day.slice(8))}
               <span className="flex h-1.5 gap-0.5">

@@ -21,7 +21,7 @@ export default function Students() {
 
   return (
     <div className="space-y-6">
-      <PageTitle>{t("nav_students")}</PageTitle>
+      <PageTitle hint={t("hint_students")}>{t("nav_students")}</PageTitle>
 
       <div className="flex flex-wrap gap-2">
         <Collapsible label={t("new_parent")}>{(close) => <ParentForm onDone={() => { close(); reloadAll(); }} onCancel={close} />}</Collapsible>
@@ -40,7 +40,7 @@ export default function Students() {
         </div>
         <Loader state={students}>
           {(list) => list.length === 0 ? <Empty /> : (
-            <div className="card divide-y divide-slate-100 p-0">
+            <div className="card divide-y divide-neutral-100 overflow-hidden p-0">
               {list.map((s) => (
                 <StudentRow key={s.id} s={s} parents={parents.data ?? []} parentName={parentName(s.parent_id)} onChange={reloadAll} />
               ))}
@@ -53,7 +53,7 @@ export default function Students() {
         <h2 className="mb-2 font-semibold">{t("parents")}</h2>
         <Loader state={parents}>
           {(list) => list.length === 0 ? <Empty /> : (
-            <div className="card divide-y divide-slate-100 p-0">
+            <div className="card divide-y divide-neutral-100 overflow-hidden p-0">
               {list.map((p) => <ParentRow key={p.id} p={p} onChange={reloadAll} />)}
             </div>
           )}
@@ -70,26 +70,36 @@ function StudentRow({ s, parents, parentName, onChange }: { s: Student; parents:
 
   if (edit)
     return (
-      <div className="px-4 py-3">
+      <div className="space-y-3 px-4 py-4">
         <StudentEditForm s={s} parents={parents} onDone={() => { setEdit(false); onChange(); }} onCancel={() => setEdit(false)} />
+        <button className={s.is_active ? "btn-danger" : "btn-light"} onClick={() => toggle().then(() => setEdit(false))}>
+          {s.is_active ? t("deactivate") : t("reactivate")}
+        </button>
       </div>
     );
 
   return (
-    <div className={`flex flex-wrap items-center gap-3 px-4 py-3 text-sm ${s.is_active ? "" : "opacity-50"}`}>
-      <LevelBadge level={s.level} />
-      <div className="min-w-40 flex-1">
-        <p className="font-medium">{s.first_name} {s.last_name} {!s.is_active && <span className="text-xs">({t("inactive")})</span>}</p>
-        <p className="text-xs text-slate-500">
+    <div className={`flex items-center gap-3 px-4 py-3 text-sm ${s.is_active ? "" : "opacity-50"}`}>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold ${LEVEL_AVATAR[s.level]}`}>
+        {s.first_name.charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-2 font-semibold">
+          <span className="truncate">{s.first_name} {s.last_name}</span>
+          <LevelBadge level={s.level} />
+          {!s.is_active && <span className="badge bg-neutral-100">{t("inactive")}</span>}
+        </p>
+        <p className="truncate text-xs text-neutral-500">
           {parentName && <>{t("parent")} : {parentName} · </>}
-          {s.username ? <span dir="ltr">@{s.username}</span> : <span className="text-slate-400">{t("no_login")}</span>}
+          {s.username ? <span dir="ltr">@{s.username}</span> : <span className="text-neutral-400">{t("no_login")}</span>}
         </p>
       </div>
-      <button className="btn-light text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
-      <button className="btn-light text-xs" onClick={toggle}>{s.is_active ? t("deactivate") : t("reactivate")}</button>
+      <button className="btn-light shrink-0 px-3 text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
     </div>
   );
 }
+
+const LEVEL_AVATAR: Record<Level, string> = { "1AC": "bg-lavender-soft", "2AC": "bg-sun-soft", "3AC": "bg-lilac-soft" };
 
 function StudentEditForm({ s, parents, onDone, onCancel }: { s: Student; parents: Parent[]; onDone: () => void; onCancel: () => void }) {
   const { t } = useI18n();
@@ -160,17 +170,22 @@ function ParentRow({ p, onChange }: { p: Parent; onChange: () => void }) {
     );
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
-      <div className="min-w-40 flex-1">
-        <p className="font-medium">{p.full_name}</p>
-        <p className="text-xs text-slate-500" dir="ltr">@{p.username}{p.phone && ` · ${p.phone}`}</p>
+    <div className="flex items-center gap-3 px-4 py-3 text-sm">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mint-soft font-bold">
+        {p.full_name.charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{p.full_name}</p>
+        <p className="truncate text-xs text-neutral-500" dir="ltr">@{p.username}{p.phone && ` · ${p.phone}`}</p>
+        {p.children.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {p.children.map((c) => (
+              <span key={c.id} className="badge bg-neutral-100">{c.first_name} · {c.level}</span>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="flex flex-wrap gap-1">
-        {p.children.map((c) => (
-          <span key={c.id} className="badge bg-slate-100 text-slate-700">{c.first_name} · {c.level}</span>
-        ))}
-      </div>
-      <button className="btn-light text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
+      <button className="btn-light shrink-0 px-3 text-xs" onClick={() => setEdit(true)}>{t("edit")}</button>
     </div>
   );
 }

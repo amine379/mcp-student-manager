@@ -39,24 +39,105 @@ export function ErrorBox({ error }: { error: unknown }) {
   return <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{err(error)}</p>;
 }
 
-export function Empty() {
+export function Empty({ text }: { text?: string }) {
   const { t } = useI18n();
-  return <p className="py-6 text-center text-sm text-slate-400">{t("empty")}</p>;
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-3xl bg-neutral-50 px-6 py-8 text-center">
+      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lavender-soft text-ink">
+        <Glyph name="inbox" />
+      </span>
+      <p className="max-w-xs text-sm text-neutral-500">{text ?? t("empty")}</p>
+    </div>
+  );
 }
 
-export function PageTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+export function PageTitle({ children, action, hint }: { children: ReactNode; action?: ReactNode; hint?: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <h1 className="text-xl font-bold text-slate-900">{children}</h1>
-      {action}
+    <div className="mb-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{children}</h1>
+        {action}
+      </div>
+      {hint && <p className="mt-1 max-w-prose text-sm text-neutral-500">{hint}</p>}
+    </div>
+  );
+}
+
+// Icônes au trait (style Lucide), 24×24
+const GLYPHS = {
+  paperclip: "m21.4 11.1-8.9 8.9a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2",
+  send: "M22 2 11 13M22 2l-7 20-4-9-9-4z",
+  back: "M15 18l-6-6 6-6",
+  chevron: "M9 18l6-6-6-6",
+  file: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6",
+  inbox: "M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z",
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3",
+  clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2",
+  camera: "M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+} as const;
+
+export type GlyphName = keyof typeof GLYPHS;
+
+export function Glyph({ name, className = "h-5 w-5" }: { name: GlyphName; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`${className} rtl:-scale-x-100`} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={GLYPHS[name]} />
+    </svg>
+  );
+}
+
+/** Bouton « Joindre un fichier » qui remplace le champ fichier natif du navigateur. */
+export function FileButton({
+  file,
+  onChange,
+  accept = ".pdf,.jpg,.jpeg,.png,.webp,.heic",
+  label,
+}: {
+  file: File | null;
+  onChange: (f: File | null) => void;
+  accept?: string;
+  label?: string;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <label className={`btn-light min-w-0 cursor-pointer ${file ? "bg-mint-soft" : ""}`}>
+        <Glyph name={file ? "file" : "paperclip"} className="h-4 w-4 shrink-0" />
+        <span className="truncate">{file ? file.name : label ?? t("attach_file")}</span>
+        <input key={file ? "set" : "empty"} type="file" accept={accept} className="hidden" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+      </label>
+      {file && (
+        <button type="button" onClick={() => onChange(null)} className="btn-light h-10 w-10 shrink-0 p-0" aria-label={t("remove")}>
+          ✕
+        </button>
+      )}
+    </div>
+  );
+}
+
+type Tone = "lavender" | "sun" | "lilac" | "mint";
+const toneBg: Record<Tone, string> = {
+  lavender: "bg-lavender-soft",
+  sun: "bg-sun-soft",
+  lilac: "bg-lilac-soft",
+  mint: "bg-mint-soft",
+};
+
+/** Tuile chiffre clé : grand nombre en haut, libellé en dessous, fond pastel. */
+export function StatTile({ value, label, tone, badge }: { value: ReactNode; label: string; tone: Tone; badge?: ReactNode }) {
+  return (
+    <div className={`flex h-full flex-col rounded-3xl p-3.5 ${toneBg[tone]}`}>
+      {badge && <div className="mb-1">{badge}</div>}
+      <p className="text-3xl font-bold leading-none tabular-nums">{value}</p>
+      <p className="mt-1.5 text-xs font-medium leading-tight text-ink/70">{label}</p>
     </div>
   );
 }
 
 const levelColors: Record<Level, string> = {
-  "1AC": "bg-sky-100 text-sky-800",
-  "2AC": "bg-amber-100 text-amber-800",
-  "3AC": "bg-violet-100 text-violet-800",
+  "1AC": "bg-lavender-soft",
+  "2AC": "bg-sun-soft",
+  "3AC": "bg-lilac-soft",
 };
 
 export function LevelBadge({ level }: { level: Level }) {
@@ -64,9 +145,9 @@ export function LevelBadge({ level }: { level: Level }) {
 }
 
 const subjectColors: Record<Subject, string> = {
-  math: "bg-indigo-50 text-indigo-700",
-  physics: "bg-orange-50 text-orange-700",
-  svt: "bg-emerald-50 text-emerald-700",
+  math: "bg-lavender",
+  physics: "bg-sun",
+  svt: "bg-mint",
 };
 
 export function SubjectBadge({ subject }: { subject: Subject }) {
@@ -74,10 +155,35 @@ export function SubjectBadge({ subject }: { subject: Subject }) {
   return <span className={`badge ${subjectColors[subject]}`}>{t(subject)}</span>;
 }
 
+const chipColors: Record<Subject, string> = {
+  math: "bg-lavender",
+  physics: "bg-sun",
+  svt: "bg-mint",
+};
+
+const chipSymbol: Record<Subject, string> = {
+  math: "Σ",
+  physics: "⚛",
+  svt: "🍃",
+};
+
+/** Pastille pleine (icône + couleur saturée) pour les écrans « coup d'œil » — dashboard, aperçu séance. */
+export function SubjectChip({ subject, size = 44 }: { subject: Subject; size?: number }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center rounded-2xl font-bold text-ink ${chipColors[subject]}`}
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+      aria-hidden="true"
+    >
+      {chipSymbol[subject]}
+    </span>
+  );
+}
+
 const statusColors: Record<SubStatus, string> = {
-  pending: "bg-slate-100 text-slate-600",
-  submitted: "bg-emerald-100 text-emerald-800",
-  not_done: "bg-rose-100 text-rose-700",
+  pending: "bg-neutral-100",
+  submitted: "bg-mint",
+  not_done: "bg-rose-100 text-rose-800",
 };
 
 export function StatusBadge({ status }: { status: SubStatus }) {
@@ -209,13 +315,13 @@ export function Tabs<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="mb-4 flex rounded-xl bg-slate-100 p-1">
+    <div className="mb-4 flex rounded-full bg-neutral-100 p-1">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
-            value === o.value ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          className={`flex-1 rounded-full px-3 py-2 text-sm font-medium transition ${
+            value === o.value ? "bg-ink text-white" : "text-slate-500 hover:text-slate-700"
           }`}
         >
           {o.label}

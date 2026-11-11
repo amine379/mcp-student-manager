@@ -31,9 +31,9 @@ export default function WeekSchedule({ slots, compact = false }: { slots: Schedu
       {days.map((d) => (
         <div
           key={d}
-          className={`rounded-xl p-3 ring-1 ${d === today ? "bg-indigo-50 ring-indigo-200" : "bg-slate-50 ring-slate-100"}`}
+          className={`rounded-xl p-3 ring-1 ${d === today ? "bg-lavender-soft ring-lavender" : "bg-slate-50 ring-slate-100"}`}
         >
-          <p className={`mb-2 text-xs font-semibold uppercase ${d === today ? "text-indigo-700" : "text-slate-500"}`}>
+          <p className={`mb-2 text-xs font-semibold uppercase ${d === today ? "text-ink" : "text-slate-500"}`}>
             {weekdayName(d)} {d === today && `· ${t("today")}`}
           </p>
           <ul className="space-y-1.5">
@@ -42,7 +42,7 @@ export default function WeekSchedule({ slots, compact = false }: { slots: Schedu
               .sort((a, b) => a.start.localeCompare(b.start))
               .map((s) => (
                 <li key={s.id} className="flex flex-wrap items-center gap-2 text-sm">
-                  <span dir="ltr" className="font-mono text-xs text-slate-600">{s.start}–{s.end}</span>
+                  <span dir="ltr" className="tabular-nums text-xs text-slate-600">{s.start}–{s.end}</span>
                   <LevelBadge level={s.level} />
                   {s.subject && <SubjectBadge subject={s.subject} />}
                 </li>

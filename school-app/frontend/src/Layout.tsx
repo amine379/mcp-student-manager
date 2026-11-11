@@ -12,8 +12,8 @@ const ICONS = {
   book: "M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5",
   pen: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   calendar: "M4 6h16v15H4zM4 10h16M8 3v4M16 3v4",
-  message: "M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12",
   mail: "M4 5h16v14H4zM4 6l8 7 8-7",
+  folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
 } as const;
 
 type IconName = keyof typeof ICONS;
@@ -33,7 +33,6 @@ const ADMIN_NAV: [string, string, IconName][] = [
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
   ["/messages", "nav_messages", "mail"],
-  ["/feedback", "nav_feedback", "message"],
 ];
 
 const FAMILY_NAV: [string, string, IconName][] = [
@@ -41,8 +40,8 @@ const FAMILY_NAV: [string, string, IconName][] = [
   ["/lessons", "nav_courses", "book"],
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
+  ["/documents", "nav_documents", "folder"],
   ["/messages", "nav_messages", "mail"],
-  ["/feedback", "nav_feedback", "message"],
 ];
 
 export function LangSwitch() {
@@ -96,7 +95,7 @@ export default function Layout() {
                 to={to}
                 end={to === "/"}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 text-sm ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-slate-600 hover:bg-slate-100"}`
+                  `rounded-full px-3.5 py-1.5 text-sm ${isActive ? "bg-ink font-semibold text-white" : "text-slate-600 hover:bg-neutral-100"}`
                 }
               >
                 {t(key)}
@@ -107,10 +106,10 @@ export default function Layout() {
             <LangSwitch />
             <NavLink
               to="/account"
-              className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 pe-3 ps-1 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              className="flex h-10 items-center gap-2 rounded-full bg-neutral-100 pe-3 ps-1 text-sm font-medium text-slate-700 hover:bg-slate-200"
               aria-label={t("nav_account")}
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lavender text-sm font-bold text-ink">
                 {user?.full_name.charAt(0).toUpperCase()}
               </span>
               <span className="hidden max-w-32 truncate sm:inline">{user?.full_name}</span>
@@ -128,21 +127,35 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-20 grid border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
-        style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
-      >
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-neutral-100 bg-white/95 px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden">
         {nav.map(([to, key, icon]) => (
           <NavLink
             key={to}
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 pb-1.5 pt-2 ${isActive ? "font-semibold text-indigo-700" : "text-slate-500"}`
+              `flex min-w-0 items-center rounded-full transition active:scale-95 ${
+                isActive
+                  ? "shrink-0 gap-1.5 bg-ink py-1 pe-3 ps-1 text-white"
+                  : "flex-1 flex-col gap-0.5 py-1 text-neutral-400 hover:text-ink"
+              }`
             }
           >
-            <Icon name={icon} />
-            <span className="w-full truncate px-0.5 text-center text-[10.5px]">{t(key)}</span>
+            {({ isActive }) =>
+              isActive ? (
+                <>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink">
+                    <Icon name={icon} />
+                  </span>
+                  <span className="whitespace-nowrap text-[11px] font-bold">{t(key)}</span>
+                </>
+              ) : (
+                <>
+                  <Icon name={icon} />
+                  <span className="w-full text-center text-[10px] font-medium leading-tight">{t(key)}</span>
+                </>
+              )
+            }
           </NavLink>
         ))}
       </nav>

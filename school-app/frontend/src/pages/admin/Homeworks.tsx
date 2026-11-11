@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
 import { LEVELS, SUBJECTS, type Homework, type Level } from "../../types";
-import { Collapsible, Empty, ErrorBox, Field, LevelBadge, Loader, PageTitle, SubjectBadge, todayISO, useLoad, useSubmit } from "../../ui";
+import { Collapsible, Empty, ErrorBox, Field, FileButton, LevelBadge, Loader, PageTitle, SubjectBadge, todayISO, useLoad, useSubmit } from "../../ui";
 
 export default function AdminHomeworks() {
   const { t, fmtDate } = useI18n();
@@ -13,7 +13,7 @@ export default function AdminHomeworks() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>{t("nav_homeworks")}</PageTitle>
+      <PageTitle hint={t("hint_homeworks_admin")}>{t("nav_homeworks")}</PageTitle>
       <Collapsible label={t("new_homework")}>
         {(close) => <HomeworkForm onDone={() => { close(); list.reload(); }} onCancel={close} />}
       </Collapsible>
@@ -32,7 +32,7 @@ export default function AdminHomeworks() {
                 <SubjectBadge subject={h.subject} />
                 <span className="flex-1 font-medium">{h.title}</span>
                 <span className="text-xs text-slate-500">{t("due_date")} {fmtDate(h.due_date)}</span>
-                {h.correction_published_at && <span className="badge bg-emerald-100 text-emerald-800">✓ {t("correction")}</span>}
+                {h.correction_published_at && <span className="badge bg-mint">✓ {t("correction")}</span>}
               </Link>
             ))}
           </div>
@@ -75,7 +75,7 @@ function HomeworkForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =
       </div>
       <div className="sm:col-span-2">
         <Field label={t("statement")}>
-          <input type="file" accept=".pdf,image/*" className="text-sm" onChange={(e) => setStatement(e.target.files?.[0] ?? null)} />
+          <FileButton file={statement} onChange={setStatement} accept=".pdf,image/*" />
         </Field>
       </div>
       <div className="sm:col-span-2"><ErrorBox error={error} /></div>

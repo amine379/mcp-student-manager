@@ -41,7 +41,7 @@ export function ChildPicker({ list, selected, select }: { list: Student[]; selec
           key={c.id}
           onClick={() => select(c.id)}
           className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
-            selected?.id === c.id ? "bg-indigo-600 text-white ring-indigo-600" : "bg-white text-slate-700 ring-slate-200"
+            selected?.id === c.id ? "bg-ink text-white ring-ink" : "bg-white text-slate-700 ring-slate-200"
           }`}
         >
           {c.first_name} <LevelBadge level={c.level} />

@@ -15,8 +15,7 @@ export default function FamilyExams() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>{t("nav_exams")}</PageTitle>
-      <p className="text-sm text-slate-500">{t("exams_hint")}</p>
+      <PageTitle hint={t("exams_hint")}>{t("nav_exams")}</PageTitle>
       <ChildPicker {...kids} />
       {child && (
         <Collapsible label={t("new_exam")}>

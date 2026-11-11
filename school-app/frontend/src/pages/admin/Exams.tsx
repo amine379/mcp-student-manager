@@ -16,7 +16,7 @@ export default function AdminExams() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>{t("nav_exams")}</PageTitle>
+      <PageTitle hint={t("hint_exams_admin")}>{t("nav_exams")}</PageTitle>
       <div className="flex flex-wrap gap-2">
         <select className="input w-auto" value={level} onChange={(e) => setLevel(e.target.value as Level | "")}>
           <option value="">{t("all_levels")}</option>
@@ -35,7 +35,7 @@ export default function AdminExams() {
                 <span className="font-medium">{e.student.first_name} {e.student.last_name}</span>
                 <SubjectBadge subject={e.subject} />
                 <span className="flex-1 text-slate-500">{e.description}</span>
-                {e.grade && <span className="badge bg-indigo-100 text-indigo-800" dir="ltr">{e.grade}</span>}
+                {e.grade && <span className="badge bg-lavender-soft" dir="ltr">{e.grade}</span>}
                 <FileThumbs files={e.files} />
               </div>
             ))}

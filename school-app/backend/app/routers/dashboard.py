@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import (
-    Attendance, Feedback, Homework, Lesson, Role, SchoolExam, Student, Submission, SubmissionStatus, User,
+    Attendance, Homework, Lesson, Message, Role, SchoolExam, Student, Submission, SubmissionStatus, User,
 )
 from app.routers.schedule import load_schedule
 from app.security import current_user, my_students
@@ -19,11 +19,11 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 async def dashboard(user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
     today = date.today()
     if user.role == Role.ADMIN:
-        return await _admin(db, today)
+        return await _admin(user, db, today)
     return await _family(user, db, today)
 
 
-async def _admin(db: AsyncSession, today: date) -> dict:
+async def _admin(user: User, db: AsyncSession, today: date) -> dict:
     per_level = dict((await db.execute(
         select(Student.level, func.count()).where(Student.is_active.is_(True)).group_by(Student.level)
     )).all())
@@ -64,7 +64,9 @@ async def _admin(db: AsyncSession, today: date) -> dict:
             }
             for h in open_homeworks
         ],
-        "unread_feedback": await db.scalar(select(func.count()).where(Feedback.is_read.is_(False))),
+        "unread_messages": await db.scalar(
+            select(func.count()).where(Message.recipient_id == user.id, Message.is_read.is_(False))
+        ),
     }
 
 

@@ -1,5 +1,4 @@
 import { api } from "../../api";
-import FamilyDocuments from "../../components/FamilyDocuments";
 import LessonCalendar from "../../components/LessonCalendar";
 import { useI18n } from "../../i18n";
 import type { Lesson } from "../../types";
@@ -16,17 +15,10 @@ export default function FamilyLessons() {
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <PageTitle>{t("nav_courses")}</PageTitle>
-        <ChildPicker {...kids} />
-        <Loader state={lessons}>{(list) => <LessonCalendar lessons={list} renderLesson={(l) => <LessonCard l={l} />} />}</Loader>
-      </div>
-
-      <section>
-        <h2 className="mb-2 font-semibold">{t("my_documents")}</h2>
-        <FamilyDocuments child={kids.selected} />
-      </section>
+    <div>
+      <PageTitle hint={t("hint_lessons_family")}>{t("nav_courses")}</PageTitle>
+      <ChildPicker {...kids} />
+      <Loader state={lessons}>{(list) => <LessonCalendar lessons={list} renderLesson={(l) => <LessonCard l={l} />} />}</Loader>
     </div>
   );
 }
@@ -36,7 +28,7 @@ function LessonCard({ l }: { l: Lesson }) {
   return (
     <article className="rounded-xl p-3 ring-1 ring-slate-200">
       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-        <span dir="ltr" className="font-mono">{l.slot}</span>
+        <span dir="ltr" className="tabular-nums">{l.slot}</span>
         <SubjectBadge subject={l.subject} />
       </div>
       <h3 className="mt-1 font-semibold">{l.title}</h3>

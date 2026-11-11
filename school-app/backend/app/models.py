@@ -185,21 +185,6 @@ class SchoolExam(Base):
     student: Mapped[Student] = relationship()
 
 
-class Feedback(Base):
-    __tablename__ = "feedbacks"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
-    student_id: Mapped[int | None] = mapped_column(ForeignKey("students.id", ondelete="SET NULL"))
-    message: Mapped[str] = mapped_column(Text)
-    reply: Mapped[str | None] = mapped_column(Text)
-    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    user: Mapped[User | None] = relationship()
-    student: Mapped[Student | None] = relationship()
-
-
 class Message(Base):
     """Message direct envoyé par le prof à un parent ou élève précis, avec pièce jointe optionnelle."""
 

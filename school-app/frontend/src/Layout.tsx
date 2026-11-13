@@ -14,6 +14,7 @@ const ICONS = {
   calendar: "M4 6h16v15H4zM4 10h16M8 3v4M16 3v4",
   mail: "M4 5h16v14H4zM4 6l8 7 8-7",
   folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+  target: "M9 11l2 2 4-4M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z",
 } as const;
 
 type IconName = keyof typeof ICONS;
@@ -32,6 +33,7 @@ const ADMIN_NAV: [string, string, IconName][] = [
   ["/lessons", "nav_lessons", "book"],
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
+  ["/exam-prep", "nav_exam_prep", "target"],
   ["/messages", "nav_messages", "mail"],
 ];
 
@@ -40,6 +42,7 @@ const FAMILY_NAV: [string, string, IconName][] = [
   ["/lessons", "nav_courses", "book"],
   ["/homeworks", "nav_homeworks", "pen"],
   ["/exams", "nav_exams", "calendar"],
+  ["/exam-prep", "nav_exam_prep", "target"],
   ["/documents", "nav_documents", "folder"],
   ["/messages", "nav_messages", "mail"],
 ];

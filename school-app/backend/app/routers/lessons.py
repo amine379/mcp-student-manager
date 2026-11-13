@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models import Attendance, ContentType, Document, Lesson, Level, Role, Student, User
 from app.schemas import AbsenceOut, AttendanceItem, AttendanceRow, DocumentOut, LessonIn, LessonOut
 from app.security import admin_user, current_user, get_accessible_student, my_students
-from app.storage import delete_upload, save_upload
+from app.storage import delete_upload, normalize_video_url, save_upload
 
 router = APIRouter(prefix="/api", tags=["séances"])
 
@@ -97,12 +97,21 @@ async def add_document(
     lesson_id: int,
     type: ContentType = Form(...),
     title: str = Form(...),
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(None),
+    url: str | None = Form(None),
     user: User = Depends(admin_user),
     db: AsyncSession = Depends(get_db),
 ):
     await _get_lesson(db, lesson_id, user)
-    doc = Document(lesson_id=lesson_id, type=type, title=title, file_path=await save_upload(file, "documents"))
+    if type == ContentType.VIDEO:
+        if not url:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "video_url_required")
+        file_path = normalize_video_url(url)
+    else:
+        if file is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "file_required")
+        file_path = await save_upload(file, "documents")
+    doc = Document(lesson_id=lesson_id, type=type, title=title, file_path=file_path)
     db.add(doc)
     await db.commit()
     return doc

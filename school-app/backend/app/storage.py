@@ -1,3 +1,4 @@
+import re
 import uuid
 from pathlib import Path
 
@@ -7,6 +8,25 @@ from app.config import settings
 
 ALLOWED = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic"}
 CHUNK = 1024 * 1024
+
+VIDEO_PATTERNS = [
+    re.compile(r"youtu\.be/([\w-]{6,})"),
+    re.compile(r"youtube\.com/watch\?v=([\w-]{6,})"),
+    re.compile(r"youtube\.com/shorts/([\w-]{6,})"),
+    re.compile(r"youtube\.com/embed/([\w-]{6,})"),
+]
+VIMEO_PATTERN = re.compile(r"vimeo\.com/(\d+)")
+
+
+def normalize_video_url(url: str) -> str:
+    """Transforme un lien YouTube/Vimeo en URL d'intégration (<iframe>), affichable dans l'app."""
+    url = url.strip()
+    for pattern in VIDEO_PATTERNS:
+        if m := pattern.search(url):
+            return f"https://www.youtube-nocookie.com/embed/{m.group(1)}"
+    if m := VIMEO_PATTERN.search(url):
+        return f"https://player.vimeo.com/video/{m.group(1)}"
+    raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid_video_url")
 
 
 async def save_upload(file: UploadFile, folder: str) -> str:

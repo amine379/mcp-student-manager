@@ -195,6 +195,21 @@ export function isImage(path: string) {
   return /\.(jpe?g|png|webp)$/i.test(path);
 }
 
+/** Lecteur vidéo intégré (YouTube/Vimeo) : format 16/9, pas de redirection hors de l'app. */
+export function VideoEmbed({ src, title }: { src: string; title: string }) {
+  return (
+    <div className="aspect-video w-full overflow-hidden rounded-2xl bg-ink">
+      <iframe
+        src={src}
+        title={title}
+        className="h-full w-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+}
+
 export function FileThumbs({ files }: { files: string[] }) {
   if (!files.length) return null;
   return (

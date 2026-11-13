@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
 import { DOC_TYPES, type AttendanceRow, type DocType, type Lesson, type Parent } from "../../types";
-import { ErrorBox, Field, FileButton, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, WhatsAppButton } from "../../ui";
+import { ErrorBox, Field, FileButton, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, VideoEmbed, WhatsAppButton } from "../../ui";
 
 /** Boutons WhatsApp pour prévenir les parents du niveau qu'un contenu a été publié. */
 function NotifyParents({ lesson, parents }: { lesson: Lesson; parents: Parent[] }) {
@@ -89,16 +89,19 @@ function Documents({ lesson, onChange }: { lesson: Lesson; onChange: () => void 
   const [type, setType] = useState<DocType>("course");
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [url, setUrl] = useState("");
   const { busy, error, run } = useSubmit();
+  const isVideo = type === "video";
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     const ok = await run(() =>
-      api.post(`/api/lessons/${lesson.id}/documents`, form({ type, title: title || t(type), file })),
+      api.post(`/api/lessons/${lesson.id}/documents`, form({ type, title: title || t(type), file: isVideo ? null : file, url: isVideo ? url : null })),
     );
     if (ok) {
       setTitle("");
       setFile(null);
+      setUrl("");
       (e.target as HTMLFormElement).reset();
       onChange();
     }
@@ -115,14 +118,24 @@ function Documents({ lesson, onChange }: { lesson: Lesson; onChange: () => void 
       {lesson.documents.length === 0 ? (
         <p className="mb-3 text-sm text-slate-400">{t("no_documents")}</p>
       ) : (
-        <ul className="mb-3 space-y-2">
-          {lesson.documents.map((d) => (
-            <li key={d.id} className="flex items-center gap-2 text-sm">
-              <span className="badge bg-slate-100 text-slate-600">{t(d.type)}</span>
-              <a href={d.file_path} target="_blank" rel="noreferrer" className="flex-1 truncate font-semibold text-ink hover:underline">{d.title}</a>
-              <button className="text-xs text-rose-600" onClick={() => remove(d.id)}>✕</button>
-            </li>
-          ))}
+        <ul className="mb-3 space-y-3">
+          {lesson.documents.map((d) =>
+            d.type === "video" ? (
+              <li key={d.id} className="space-y-1.5">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="badge bg-lavender-soft flex-1 truncate font-semibold">{d.title}</span>
+                  <button className="text-xs text-rose-600" onClick={() => remove(d.id)}>✕</button>
+                </div>
+                <VideoEmbed src={d.file_path} title={d.title} />
+              </li>
+            ) : (
+              <li key={d.id} className="flex items-center gap-2 text-sm">
+                <span className="badge bg-slate-100 text-slate-600">{t(d.type)}</span>
+                <a href={d.file_path} target="_blank" rel="noreferrer" className="flex-1 truncate font-semibold text-ink hover:underline">{d.title}</a>
+                <button className="text-xs text-rose-600" onClick={() => remove(d.id)}>✕</button>
+              </li>
+            ),
+          )}
         </ul>
       )}
       <form onSubmit={submit} className="space-y-2 border-t border-slate-100 pt-3">
@@ -133,11 +146,24 @@ function Documents({ lesson, onChange }: { lesson: Lesson; onChange: () => void 
           </select>
           <input className="input" placeholder={t("title")} value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <Field label={t("file")}>
-          <FileButton file={file} onChange={setFile} accept=".pdf,image/*" />
-        </Field>
+        {isVideo ? (
+          <Field label={t("video_url")} hint={t("video_url_hint")}>
+            <input
+              className="input"
+              dir="ltr"
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=…"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </Field>
+        ) : (
+          <Field label={t("file")}>
+            <FileButton file={file} onChange={setFile} accept=".pdf,image/*" />
+          </Field>
+        )}
         <ErrorBox error={error} />
-        <button className="btn" disabled={busy || !file}>{t("add")}</button>
+        <button className="btn" disabled={busy || (isVideo ? !url.trim() : !file)}>{t("add")}</button>
       </form>
     </section>
   );

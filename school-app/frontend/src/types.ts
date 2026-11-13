@@ -2,12 +2,16 @@ export type Role = "admin" | "parent" | "student";
 export type Level = "1AC" | "2AC" | "3AC";
 export type Slot = string; // "19:00-20:30"
 export type Subject = "math" | "physics" | "svt";
-export type DocType = "course" | "exercise" | "correction";
+export type DocType = "course" | "exercise" | "correction" | "video";
 export type SubStatus = "pending" | "submitted" | "not_done";
+export type Semester = "S1" | "S2";
+export type ControlNumber = 1 | 2 | 3;
 
 export const LEVELS: Level[] = ["1AC", "2AC", "3AC"];
 export const SUBJECTS: Subject[] = ["math", "physics", "svt"];
 export const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+export const SEMESTERS: Semester[] = ["S1", "S2"];
+export const CONTROL_NUMBERS: ControlNumber[] = [1, 2, 3];
 
 export interface ScheduleSlot {
   id: number;
@@ -29,7 +33,7 @@ export interface FamilyDoc {
   uploaded_by_name: string | null;
   student_name: string | null;
 }
-export const DOC_TYPES: DocType[] = ["course", "exercise", "correction"];
+export const DOC_TYPES: DocType[] = ["course", "exercise", "correction", "video"];
 
 export interface User {
   id: number;
@@ -130,6 +134,38 @@ export interface Exam {
   files: string[];
   created_at: string;
   student: Student;
+}
+
+export interface ExamPrepSubmission {
+  id: number;
+  student_id: number;
+  files: string[];
+  grade: string | null;
+  submitted_at: string | null;
+}
+
+export interface ExamPrep {
+  id: number;
+  level: Level;
+  subject: Subject;
+  semester: Semester;
+  control_number: ControlNumber;
+  title: string;
+  statement_path: string | null;
+  correction_path: string | null;
+  correction_published_at: string | null;
+  video_url: string | null;
+  created_at: string;
+  my_submissions: Record<string, ExamPrepSubmission | null>;
+}
+
+export interface ExamPrepSubmissionRow {
+  student_id: number;
+  first_name: string;
+  last_name: string;
+  files: string[];
+  grade: string | null;
+  submitted_at: string | null;
 }
 
 export interface Message {

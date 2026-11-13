@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import ContentType, Level, Role, Subject, SubmissionStatus
+from app.models import ContentType, Level, Role, Semester, Subject, SubmissionStatus
 
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 SlotStr = Annotated[str, Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$")]
@@ -182,6 +182,52 @@ class SubmissionRow(BaseModel):
 
 class SubmissionStatusIn(BaseModel):
     status: SubmissionStatus
+
+
+# ---------- Entraînements contrôles (préparation, accumulés au fil des séances) ----------
+class ExamPrepSubmissionOut(ORM):
+    id: int
+    student_id: int
+    files: list[str]
+    grade: str | None
+    submitted_at: datetime | None
+
+
+class ExamPrepOut(ORM):
+    id: int
+    level: Level
+    subject: Subject
+    semester: Semester
+    control_number: int
+    title: str
+    statement_path: str | None
+    correction_path: str | None
+    correction_published_at: datetime | None
+    video_url: str | None
+    created_at: datetime
+
+
+class ExamPrepForFamily(ExamPrepOut):
+    # une entrée par enfant concerné (student_id -> soumission)
+    my_submissions: dict[int, ExamPrepSubmissionOut | None] = {}
+
+
+class ExamPrepSubmissionRow(BaseModel):
+    student_id: int
+    first_name: str
+    last_name: str
+    files: list[str]
+    grade: str | None
+    submitted_at: datetime | None
+
+
+class ExamPrepGradeIn(BaseModel):
+    grade: str | None = Field(default=None, max_length=20)
+
+
+class ExamPrepUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    video_url: str | None = None
 
 
 # ---------- Contrôles école ----------

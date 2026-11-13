@@ -10,6 +10,7 @@ import Account from "./pages/Account";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminDocuments from "./pages/admin/Documents";
 import AdminSchedule from "./pages/admin/Schedule";
+import AdminExamPrep from "./pages/admin/ExamPrep";
 import AdminExams from "./pages/admin/Exams";
 import AdminHomeworkDetail from "./pages/admin/HomeworkDetail";
 import AdminHomeworks from "./pages/admin/Homeworks";
@@ -19,6 +20,7 @@ import AdminMessages from "./pages/admin/Messages";
 import Students from "./pages/admin/Students";
 import FamilyDashboard from "./pages/family/Dashboard";
 import FamilyDocuments from "./pages/family/Documents";
+import FamilyExamPrep from "./pages/family/ExamPrep";
 import FamilyExams from "./pages/family/Exams";
 import FamilyHomeworks from "./pages/family/Homeworks";
 import FamilyLessons from "./pages/family/Lessons";
@@ -54,6 +56,7 @@ function AppRoutes() {
         <Route path="lessons" element={admin ? <AdminLessons /> : <FamilyLessons />} />
         <Route path="homeworks" element={admin ? <AdminHomeworks /> : <FamilyHomeworks />} />
         <Route path="exams" element={admin ? <AdminExams /> : <FamilyExams />} />
+        <Route path="exam-prep" element={admin ? <AdminExamPrep /> : <FamilyExamPrep />} />
         <Route path="messages" element={admin ? <AdminMessages /> : <FamilyMessages />} />
         <Route path="account" element={<Account />} />
         {admin ? (

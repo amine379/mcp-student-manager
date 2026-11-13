@@ -36,12 +36,18 @@ class ContentType(str, enum.Enum):
     COURSE = "course"
     EXERCISE = "exercise"
     CORRECTION = "correction"
+    VIDEO = "video"
 
 
 class SubmissionStatus(str, enum.Enum):
     PENDING = "pending"
     SUBMITTED = "submitted"
     NOT_DONE = "not_done"
+
+
+class Semester(str, enum.Enum):
+    S1 = "S1"
+    S2 = "S2"
 
 
 def _enum(e):
@@ -182,6 +188,45 @@ class SchoolExam(Base):
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    student: Mapped[Student] = relationship()
+
+
+class ExamPrep(Base):
+    """Un exercice d'entraînement pour un contrôle (1, 2 ou 3) : s'accumule au fil des séances."""
+
+    __tablename__ = "exam_preps"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    level: Mapped[Level] = mapped_column(_enum(Level), index=True)
+    subject: Mapped[Subject] = mapped_column(_enum(Subject), index=True)
+    semester: Mapped[Semester] = mapped_column(_enum(Semester), index=True)
+    control_number: Mapped[int] = mapped_column()
+    title: Mapped[str] = mapped_column(String(200))
+    statement_path: Mapped[str | None] = mapped_column(String(300))
+    correction_path: Mapped[str | None] = mapped_column(String(300))
+    correction_published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    video_url: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    submissions: Mapped[list["ExamPrepSubmission"]] = relationship(
+        back_populates="exam_prep", cascade="all, delete-orphan"
+    )
+
+
+class ExamPrepSubmission(Base):
+    """Photos envoyées par un élève pour un exercice d'entraînement, + sa note."""
+
+    __tablename__ = "exam_prep_submissions"
+    __table_args__ = (UniqueConstraint("exam_prep_id", "student_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    exam_prep_id: Mapped[int] = mapped_column(ForeignKey("exam_preps.id", ondelete="CASCADE"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"), index=True)
+    files: Mapped[list[str]] = mapped_column(JSON, default=list)
+    grade: Mapped[str | None] = mapped_column(String(20))
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    exam_prep: Mapped[ExamPrep] = relationship(back_populates="submissions")
     student: Mapped[Student] = relationship()
 
 

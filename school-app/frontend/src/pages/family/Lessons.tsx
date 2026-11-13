@@ -2,7 +2,7 @@ import { api } from "../../api";
 import LessonCalendar from "../../components/LessonCalendar";
 import { useI18n } from "../../i18n";
 import type { Lesson } from "../../types";
-import { Loader, PageTitle, SubjectBadge, useLoad } from "../../ui";
+import { Loader, PageTitle, SubjectBadge, useLoad, VideoEmbed } from "../../ui";
 import { ChildPicker, useChildren } from "./ChildPicker";
 
 export default function FamilyLessons() {
@@ -34,12 +34,17 @@ function LessonCard({ l }: { l: Lesson }) {
       <h3 className="mt-1 font-semibold">{l.title}</h3>
       {l.notes && <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{l.notes}</p>}
       {l.documents.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {l.documents.map((d) => (
-            <a key={d.id} href={d.file_path} target="_blank" rel="noreferrer" className="btn-light text-xs">
-              {t(d.type)} · {d.title}
-            </a>
-          ))}
+        <div className="mt-3 space-y-2">
+          {l.documents
+            .filter((d) => d.type !== "video")
+            .map((d) => (
+              <a key={d.id} href={d.file_path} target="_blank" rel="noreferrer" className="btn-light me-2 text-xs">
+                {t(d.type)} · {d.title}
+              </a>
+            ))}
+          {l.documents
+            .filter((d) => d.type === "video")
+            .map((d) => <VideoEmbed key={d.id} src={d.file_path} title={d.title} />)}
         </div>
       ) : (
         <p className="mt-2 text-xs text-slate-400">{t("no_documents")}</p>

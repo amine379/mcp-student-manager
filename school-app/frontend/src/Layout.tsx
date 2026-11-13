@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { api } from "./api";
@@ -80,14 +80,31 @@ export default function Layout() {
   const { t } = useI18n();
   const { pathname } = useLocation();
   const nav = user?.role === "admin" ? ADMIN_NAV : FAMILY_NAV;
+  const bottomNavRef = useRef<HTMLElement>(null);
+  const [bottomNavHeight, setBottomNavHeight] = useState(0);
 
   // Accolades obligatoires : Chrome récent renvoie une Promise, que React prendrait pour un cleanup
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // Mesure la vraie hauteur de la barre du bas (variable selon le nombre d'onglets, la langue,
+  // ou un libellé qui passe sur 2 lignes) au lieu d'une marge fixe qui finit par chevaucher le contenu.
+  useEffect(() => {
+    const el = bottomNavRef.current;
+    if (!el) return;
+    const update = () => setBottomNavHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-8">
+    <div
+      className="min-h-screen md:pb-8"
+      style={bottomNavHeight > 0 ? { paddingBottom: `calc(${bottomNavHeight}px + env(safe-area-inset-bottom))` } : undefined}
+    >
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2.5">
           <NavLink to="/"><Brand /></NavLink>
@@ -130,7 +147,10 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-neutral-100 bg-white/95 px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden">
+      <nav
+        ref={bottomNavRef}
+        className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-neutral-100 bg-white/95 px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden"
+      >
         {nav.map(([to, key, icon]) => (
           <NavLink
             key={to}
@@ -155,7 +175,7 @@ export default function Layout() {
               ) : (
                 <>
                   <Icon name={icon} />
-                  <span className="w-full text-center text-[10px] font-medium leading-tight">{t(key)}</span>
+                  <span className="w-full truncate text-center text-[10px] font-medium leading-tight">{t(key)}</span>
                 </>
               )
             }

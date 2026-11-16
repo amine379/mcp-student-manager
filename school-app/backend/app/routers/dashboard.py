@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import (
-    Attendance, Homework, Lesson, Message, Role, SchoolExam, Student, Submission, SubmissionStatus, User,
+    Attendance, ExamPrep, ExamPrepSubmission, Homework, Lesson, Message, Role, SchoolExam, Student, Submission,
+    SubmissionStatus, User,
 )
 from app.routers.schedule import load_schedule
 from app.security import current_user, my_students
@@ -86,6 +87,12 @@ async def _family(user: User, db: AsyncSession, today: date) -> dict:
             select(Homework).where(Homework.level == s.level, Homework.correction_published_at.is_(None))
             .order_by(Homework.due_date)
         )).all()
+        exam_prep_sent_ids = set((await db.scalars(
+            select(ExamPrepSubmission.exam_prep_id).where(ExamPrepSubmission.student_id == s.id)
+        )).all())
+        exam_prep_todo = (await db.scalars(
+            select(ExamPrep).where(ExamPrep.level == s.level).order_by(ExamPrep.created_at.desc())
+        )).all()
         exams = (await db.scalars(
             select(SchoolExam).where(SchoolExam.student_id == s.id, SchoolExam.exam_date >= today)
             .order_by(SchoolExam.exam_date)
@@ -101,6 +108,10 @@ async def _family(user: User, db: AsyncSession, today: date) -> dict:
             "homeworks_todo": [
                 {"id": h.id, "title": h.title, "subject": h.subject.value, "due_date": h.due_date}
                 for h in todo if h.id not in done_ids
+            ],
+            "exam_prep_todo": [
+                {"id": e.id, "title": e.title, "subject": e.subject.value, "control_number": e.control_number}
+                for e in exam_prep_todo if e.id not in exam_prep_sent_ids
             ],
             "upcoming_exams": [
                 {"id": e.id, "subject": e.subject.value, "date": e.exam_date} for e in exams

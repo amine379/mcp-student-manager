@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../api";
 import { useI18n } from "../../i18n";
 import type { AbsenceNotification, ExamPrepNotification, HomeworkNotification, NotificationCase } from "../../types";
-import { Empty, LevelBadge, Loader, PageTitle, SubjectBadge, useLoad, WhatsAppButton } from "../../ui";
+import { appLink, Empty, LevelBadge, Loader, PageTitle, SubjectBadge, useLoad, WhatsAppButton } from "../../ui";
 
 const ENDPOINT: Record<NotificationCase, string> = {
   absence: "/api/notifications/absence",
@@ -126,7 +126,8 @@ function message(
       .replace("{name}", r.parent_name)
       .replace("{student}", r.student_name)
       .replace("{subject}", t(r.subject))
-      .replace("{date}", fmtDate(r.lesson_date));
+      .replace("{date}", fmtDate(r.lesson_date))
+      .replace("{link}", appLink("/lessons"));
   }
   if (caseType === "homework") {
     const r = row as HomeworkNotification;
@@ -135,12 +136,14 @@ function message(
       .replace("{name}", r.parent_name)
       .replace("{subject}", t(r.subject))
       .replace("{title}", r.title)
-      .replace("{date}", fmtDate(r.due_date));
+      .replace("{date}", fmtDate(r.due_date))
+      .replace("{link}", appLink("/homeworks"));
   }
   const r = row as ExamPrepNotification;
   return t("wa_exam_prep_text")
     .replace("{name}", r.parent_name)
     .replace("{subject}", t(r.subject))
     .replace("{n}", String(r.control_number))
-    .replace("{title}", r.title);
+    .replace("{title}", r.title)
+    .replace("{link}", appLink("/exam-prep"));
 }

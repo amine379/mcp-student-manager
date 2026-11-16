@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
-import { DOC_TYPES, type AttendanceRow, type DocType, type Lesson, type Parent } from "../../types";
-import { ErrorBox, Field, FileButton, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, VideoEmbed, WhatsAppButton } from "../../ui";
+import { LEVELS, SUBJECTS, DOC_TYPES, type AttendanceRow, type DocType, type Lesson, type Level, type Parent, type Subject } from "../../types";
+import { appLink, ErrorBox, Field, FileButton, LevelBadge, Loader, SubjectBadge, useLoad, useSubmit, VideoEmbed, WhatsAppButton } from "../../ui";
 
 /** Boutons WhatsApp pour prévenir les parents du niveau qu'un contenu a été publié. */
 function NotifyParents({ lesson, parents }: { lesson: Lesson; parents: Parent[] }) {
@@ -16,7 +16,8 @@ function NotifyParents({ lesson, parents }: { lesson: Lesson; parents: Parent[] 
       .replace("{name}", name)
       .replace("{subject}", t(lesson.subject))
       .replace("{title}", lesson.title)
-      .replace("{date}", fmtDate(lesson.date));
+      .replace("{date}", fmtDate(lesson.date))
+      .replace("{link}", appLink("/lessons"));
 
   if (lesson.documents.length === 0) return null;
 
@@ -49,6 +50,7 @@ export default function AdminLessonDetail() {
   const navigate = useNavigate();
   const lesson = useLoad(() => api.get<Lesson>(`/api/lessons/${id}`), [id]);
   const parents = useLoad(() => api.get<Parent[]>("/api/parents"));
+  const [editing, setEditing] = useState(false);
 
   const remove = async () => {
     if (!confirm(t("confirm_delete"))) return;
@@ -61,16 +63,23 @@ export default function AdminLessonDetail() {
       {(l) => (
         <div className="space-y-4">
           <Link to="/lessons" className="text-sm font-semibold text-ink">← {t("back")}</Link>
-          <div className="card">
-            <div className="flex flex-wrap items-center gap-2">
-              <LevelBadge level={l.level} />
-              <SubjectBadge subject={l.subject} />
-              <span className="text-sm text-slate-500">{fmtDate(l.date)} · <span dir="ltr">{l.slot}</span></span>
-              <button className="btn-danger ms-auto" onClick={remove}>{t("delete")}</button>
+          {editing ? (
+            <LessonEditForm lesson={l} onDone={() => { setEditing(false); lesson.reload(); }} onCancel={() => setEditing(false)} />
+          ) : (
+            <div className="card">
+              <div className="flex flex-wrap items-center gap-2">
+                <LevelBadge level={l.level} />
+                <SubjectBadge subject={l.subject} />
+                <span className="text-sm text-slate-500">{fmtDate(l.date)} · <span dir="ltr">{l.slot}</span></span>
+                <div className="ms-auto flex gap-2">
+                  <button className="btn-light" onClick={() => setEditing(true)}>{t("edit")}</button>
+                  <button className="btn-danger" onClick={remove}>{t("delete")}</button>
+                </div>
+              </div>
+              <h1 className="mt-2 text-xl font-bold">{l.title}</h1>
+              {l.notes && <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{l.notes}</p>}
             </div>
-            <h1 className="mt-2 text-xl font-bold">{l.title}</h1>
-            {l.notes && <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{l.notes}</p>}
-          </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <Documents lesson={l} onChange={lesson.reload} />
@@ -81,6 +90,61 @@ export default function AdminLessonDetail() {
         </div>
       )}
     </Loader>
+  );
+}
+
+function LessonEditForm({ lesson, onDone, onCancel }: { lesson: Lesson; onDone: () => void; onCancel: () => void }) {
+  const { t } = useI18n();
+  const [start, end0] = lesson.slot.split("-");
+  const [f, setF] = useState({
+    level: lesson.level, subject: lesson.subject, date: lesson.date, start, end: end0, title: lesson.title,
+    notes: lesson.notes ?? "",
+  });
+  const { busy, error, run } = useSubmit();
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    setF({ ...f, [k]: e.target.value });
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const body = {
+      level: f.level, subject: f.subject, date: f.date, slot: `${f.start}-${f.end}`, title: f.title,
+      notes: f.notes || null,
+    };
+    if (await run(() => api.put(`/api/lessons/${lesson.id}`, body))) onDone();
+  };
+
+  return (
+    <form onSubmit={submit} className="card grid gap-3 sm:grid-cols-2">
+      <h3 className="font-semibold sm:col-span-2">{t("edit")}</h3>
+      <Field label={t("date")}>
+        <input type="date" className="input" value={f.date} onChange={set("date")} required />
+      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label={t("start")}><input type="time" className="input" value={f.start} onChange={set("start")} required /></Field>
+        <Field label={t("end")}><input type="time" className="input" value={f.end} onChange={set("end")} required /></Field>
+      </div>
+      <Field label={t("level")}>
+        <select className="input" value={f.level} onChange={(e) => setF({ ...f, level: e.target.value as Level })}>
+          {LEVELS.map((l) => <option key={l} value={l}>{t(l)}</option>)}
+        </select>
+      </Field>
+      <Field label={t("subject")}>
+        <select className="input" value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value as Subject })}>
+          {SUBJECTS.map((s) => <option key={s} value={s}>{t(s)}</option>)}
+        </select>
+      </Field>
+      <div className="sm:col-span-2">
+        <Field label={t("title")}><input className="input" value={f.title} onChange={set("title")} required /></Field>
+      </div>
+      <div className="sm:col-span-2">
+        <Field label={t("notes")}><textarea className="input" rows={2} value={f.notes} onChange={set("notes")} /></Field>
+      </div>
+      <div className="sm:col-span-2"><ErrorBox error={error} /></div>
+      <div className="flex gap-2 sm:col-span-2">
+        <button className="btn" disabled={busy}>{t("save")}</button>
+        <button type="button" className="btn-light" onClick={onCancel}>{t("cancel")}</button>
+      </div>
+    </form>
   );
 }
 

@@ -40,7 +40,14 @@ async def list_exam_preps(
 
     students = await my_students(user, db)
     levels = {s.level for s in students}
-    items = (await db.scalars(q.where(ExamPrep.level.in_(levels)))).all()
+    if level:
+        if level not in levels:
+            return []
+        levels = {level}
+    q = q.where(ExamPrep.level.in_(levels))
+    if subject:
+        q = q.where(ExamPrep.subject == subject)
+    items = (await db.scalars(q)).all()
     subs = (await db.scalars(
         select(ExamPrepSubmission).where(ExamPrepSubmission.student_id.in_([s.id for s in students]))
     )).all()

@@ -14,6 +14,7 @@ interface Child {
   level: Level;
   absences: number;
   homeworks_todo: { id: number; title: string; subject: Subject; due_date: string }[];
+  exam_prep_todo: { id: number; title: string; subject: Subject; control_number: number }[];
   upcoming_exams: { id: number; subject: Subject; date: string }[];
   last_lesson: { id: number; title: string; date: string } | null;
 }
@@ -79,9 +80,12 @@ function ChildCard({ c, slots }: { c: Child; slots: ScheduleSlot[] }) {
       </div>
 
       <div className="space-y-5 bg-white p-4">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Link to="/homeworks" className="text-start active:scale-95">
-            <StatTile value={c.homeworks_todo.length} label={t("homeworks_todo")} tone="sun" />
+            <StatTile value={c.homeworks_todo.length} label={t("homeworks_todo")} tone="sun" badge={<Mandatory count={c.homeworks_todo.length} />} />
+          </Link>
+          <Link to="/exam-prep" className="text-start active:scale-95">
+            <StatTile value={c.exam_prep_todo.length} label={t("nav_exam_prep")} tone="lavender" badge={<Mandatory count={c.exam_prep_todo.length} />} />
           </Link>
           <button onClick={() => setShowAbs(!showAbs)} className="text-start active:scale-95">
             <StatTile value={c.absences} label={t("absences")} tone="lilac" />
@@ -94,7 +98,7 @@ function ChildCard({ c, slots }: { c: Child; slots: ScheduleSlot[] }) {
         {showAbs && <AbsenceList studentId={c.id} />}
 
         <section>
-          <SectionHead title={t("homeworks_todo")} to="/homeworks" />
+          <SectionHead title={t("homeworks_todo")} to="/homeworks" mandatory={c.homeworks_todo.length > 0} />
           {c.homeworks_todo.length === 0 ? (
             <p className="rounded-2xl bg-mint-soft px-4 py-3 text-sm font-medium">{t("all_done")}</p>
           ) : (
@@ -103,19 +107,41 @@ function ChildCard({ c, slots }: { c: Child; slots: ScheduleSlot[] }) {
                 const late = h.due_date < today;
                 return (
                   <li key={h.id}>
-                    <Link to="/homeworks" className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-2.5 hover:bg-neutral-100">
+                    <Link to="/homeworks" className={`flex items-center gap-3 rounded-2xl p-2.5 hover:bg-neutral-100 ${late ? "bg-rose-50" : "bg-neutral-50"}`}>
                       <SubjectChip subject={h.subject} size={36} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold">{h.title}</span>
                         <span className="text-xs capitalize text-neutral-500">{t(h.subject)}</span>
                       </span>
-                      <span className={`badge shrink-0 first-letter:uppercase ${late ? "bg-rose-100 text-rose-800" : "bg-white"}`}>
+                      <span className={`badge shrink-0 first-letter:uppercase ${late ? "bg-rose-600 text-white" : "bg-white"}`}>
                         {late ? t("late") : fmtDate(h.due_date)}
                       </span>
                     </Link>
                   </li>
                 );
               })}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <SectionHead title={t("nav_exam_prep")} to="/exam-prep" mandatory={c.exam_prep_todo.length > 0} />
+          {c.exam_prep_todo.length === 0 ? (
+            <p className="rounded-2xl bg-mint-soft px-4 py-3 text-sm font-medium">{t("all_done")}</p>
+          ) : (
+            <ul className="space-y-2">
+              {c.exam_prep_todo.map((e) => (
+                <li key={e.id}>
+                  <Link to="/exam-prep" className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-2.5 hover:bg-neutral-100">
+                    <SubjectChip subject={e.subject} size={36} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{e.title}</span>
+                      <span className="text-xs capitalize text-neutral-500">{t(e.subject)}</span>
+                    </span>
+                    <span className="badge shrink-0 bg-white">{t("control_n").replace("{n}", String(e.control_number))}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           )}
         </section>
@@ -159,14 +185,23 @@ function ChildCard({ c, slots }: { c: Child; slots: ScheduleSlot[] }) {
   );
 }
 
-function SectionHead({ title, to }: { title: string; to: string }) {
+function SectionHead({ title, to, mandatory }: { title: string; to: string; mandatory?: boolean }) {
   const { t } = useI18n();
   return (
-    <div className="mb-2 flex items-center justify-between">
-      <h3 className="text-sm font-bold">{title}</h3>
+    <div className="mb-2 flex items-center justify-between gap-2">
+      <h3 className="flex items-center gap-1.5 text-sm font-bold">
+        {title}
+        {mandatory && <span className="badge bg-rose-600 text-white">{t("mandatory")}</span>}
+      </h3>
       <Link to={to} className="text-xs font-semibold text-neutral-500 hover:text-ink">{t("see_all")} →</Link>
     </div>
   );
+}
+
+/** Pastille rouge d'alerte : ce type de tâche est obligatoire. */
+function Mandatory({ count }: { count: number }) {
+  if (count === 0) return null;
+  return <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">!</span>;
 }
 
 function AbsenceList({ studentId }: { studentId: number }) {

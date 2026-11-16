@@ -34,10 +34,18 @@ export default function AdminNotifications() {
       .catch(() => {});
   };
 
+  const clearAll = () => {
+    if (!confirm(t("confirm_clear_all"))) return;
+    setSent((s) => new Set([...s, ...(list.data ?? []).map((r) => `${r.reference_id}-${r.parent_id}`)]));
+    api.post(`/api/notifications/${caseType}/clear-all`).catch(() => {});
+  };
+
   return (
     <div className="space-y-4">
       <Link to="/" className="text-sm font-semibold text-ink">{t("back_to_cases")}</Link>
-      <PageTitle hint={t("mark_sent_hint")}>{t(CASE_TITLE[caseType])}</PageTitle>
+      <PageTitle hint={t("mark_sent_hint")} action={<button className="btn-light text-xs" onClick={clearAll}>{t("clear_all")}</button>}>
+        {t(CASE_TITLE[caseType])}
+      </PageTitle>
 
       <Loader state={list}>
         {(rows) => {
@@ -53,6 +61,13 @@ export default function AdminNotifications() {
                     label={t("wa_send")}
                     onClick={() => markSent(row)}
                   />
+                  <button
+                    className="btn-light h-10 w-10 shrink-0 p-0 text-neutral-500"
+                    aria-label={t("remove")}
+                    onClick={() => markSent(row)}
+                  >
+                    ✕
+                  </button>
                 </li>
               ))}
             </ul>

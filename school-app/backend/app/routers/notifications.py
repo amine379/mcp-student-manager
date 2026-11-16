@@ -132,3 +132,19 @@ async def mark_sent(data: MarkNotificationSentIn, db: AsyncSession = Depends(get
         raise HTTPException(status.HTTP_404_NOT_FOUND, "parent_not_found")
     db.add(ParentNotification(type=data.type, reference_id=data.reference_id, parent_id=data.parent_id))
     await db.commit()
+
+
+_LIST_FN = {
+    NotificationType.ABSENCE: _list_absence,
+    NotificationType.HOMEWORK: _list_homework,
+    NotificationType.EXAM_PREP: _list_exam_prep,
+}
+
+
+@router.post("/{type}/clear-all", status_code=204)
+async def clear_all(type: NotificationType, db: AsyncSession = Depends(get_db)):
+    """Marque tous les messages en attente de ce type comme traités, sans ouvrir WhatsApp."""
+    pending = await _LIST_FN[type](db)
+    for row in pending:
+        db.add(ParentNotification(type=type, reference_id=row.reference_id, parent_id=row.parent_id))
+    await db.commit()

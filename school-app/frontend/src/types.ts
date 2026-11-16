@@ -168,6 +168,49 @@ export interface ExamPrepSubmissionRow {
   submitted_at: string | null;
 }
 
+export type NotificationCase = "absence" | "homework" | "exam_prep";
+
+export interface NotificationSummary {
+  absence: number;
+  homework: number;
+  exam_prep: number;
+}
+
+export interface AbsenceNotification {
+  reference_id: number;
+  parent_id: number;
+  parent_name: string;
+  phone: string | null;
+  student_name: string;
+  level: Level;
+  subject: Subject;
+  lesson_date: string;
+}
+
+export interface HomeworkNotification {
+  reference_id: number;
+  parent_id: number;
+  parent_name: string;
+  phone: string | null;
+  level: Level;
+  subject: Subject;
+  title: string;
+  due_date: string;
+  correction_published: boolean;
+}
+
+export interface ExamPrepNotification {
+  reference_id: number;
+  parent_id: number;
+  parent_name: string;
+  phone: string | null;
+  level: Level;
+  subject: Subject;
+  semester: Semester;
+  control_number: ControlNumber;
+  title: string;
+}
+
 export interface Message {
   id: number;
   body: string;

@@ -360,7 +360,9 @@ export function waLink(phone: string, text: string) {
 }
 
 /** Bouton vert « WhatsApp » qui ouvre une conversation pré-remplie. */
-export function WhatsAppButton({ phone, text, label }: { phone: string | null; text: string; label: string }) {
+export function WhatsAppButton({
+  phone, text, label, onClick,
+}: { phone: string | null; text: string; label: string; onClick?: () => void }) {
   const { t } = useI18n();
   if (!phone) return <span className="text-xs text-slate-400">{t("no_phone")}</span>;
   return (
@@ -368,6 +370,7 @@ export function WhatsAppButton({ phone, text, label }: { phone: string | null; t
       href={waLink(phone, text)}
       target="_blank"
       rel="noreferrer"
+      onClick={onClick}
       className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">

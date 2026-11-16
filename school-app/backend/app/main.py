@@ -10,7 +10,8 @@ from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import Role, User
 from app.routers import (
-    accounts, auth, dashboard, exam_prep, exams, family_documents, homeworks, lessons, messages, schedule,
+    accounts, auth, dashboard, exam_prep, exams, family_documents, homeworks, lessons, messages, notifications,
+    schedule,
 )
 from app.security import hash_password
 
@@ -47,7 +48,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, accounts, lessons, homeworks, exams, exam_prep, dashboard, schedule, family_documents, messages):
+for r in (
+    auth, accounts, lessons, homeworks, exams, exam_prep, dashboard, schedule, family_documents, messages,
+    notifications,
+):
     app.include_router(r.router)
 
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)

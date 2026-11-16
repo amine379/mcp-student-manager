@@ -50,6 +50,12 @@ class Semester(str, enum.Enum):
     S2 = "S2"
 
 
+class NotificationType(str, enum.Enum):
+    ABSENCE = "absence"
+    HOMEWORK = "homework"
+    EXAM_PREP = "exam_prep"
+
+
 def _enum(e):
     return Enum(e, values_callable=lambda x: [m.value for m in x], native_enum=False, length=20)
 
@@ -228,6 +234,24 @@ class ExamPrepSubmission(Base):
 
     exam_prep: Mapped[ExamPrep] = relationship(back_populates="submissions")
     student: Mapped[Student] = relationship()
+
+
+class ParentNotification(Base):
+    """Trace qu'un message WhatsApp a été ouvert (cliqué) pour un parent, pour un événement précis.
+
+    On ne peut jamais savoir si WhatsApp a réellement été envoyé (appli externe) : cette table
+    marque juste « déjà traité dans Amine Cours », pour que le centre de notifications ne le
+    reproposee plus.
+    """
+
+    __tablename__ = "parent_notifications"
+    __table_args__ = (UniqueConstraint("type", "reference_id", "parent_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    type: Mapped[NotificationType] = mapped_column(_enum(NotificationType), index=True)
+    reference_id: Mapped[int] = mapped_column(index=True)
+    parent_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Message(Base):

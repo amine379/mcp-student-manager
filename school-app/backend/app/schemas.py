@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import ContentType, Level, Role, Semester, Subject, SubmissionStatus
+from app.models import ContentType, Level, NotificationType, Role, Semester, Subject, SubmissionStatus
 
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 SlotStr = Annotated[str, Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$")]
@@ -228,6 +228,54 @@ class ExamPrepGradeIn(BaseModel):
 class ExamPrepUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     video_url: str | None = None
+
+
+# ---------- Centre de notifications WhatsApp ----------
+class NotificationSummary(BaseModel):
+    absence: int
+    homework: int
+    exam_prep: int
+
+
+class AbsenceNotification(BaseModel):
+    reference_id: int
+    parent_id: int
+    parent_name: str
+    phone: str | None
+    student_name: str
+    level: Level
+    subject: Subject
+    lesson_date: date
+
+
+class HomeworkNotification(BaseModel):
+    reference_id: int
+    parent_id: int
+    parent_name: str
+    phone: str | None
+    level: Level
+    subject: Subject
+    title: str
+    due_date: date
+    correction_published: bool
+
+
+class ExamPrepNotification(BaseModel):
+    reference_id: int
+    parent_id: int
+    parent_name: str
+    phone: str | None
+    level: Level
+    subject: Subject
+    semester: Semester
+    control_number: int
+    title: str
+
+
+class MarkNotificationSentIn(BaseModel):
+    type: NotificationType
+    reference_id: int
+    parent_id: int
 
 
 # ---------- Contrôles école ----------

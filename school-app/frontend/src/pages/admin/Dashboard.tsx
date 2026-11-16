@@ -4,7 +4,7 @@ import { api } from "../../api";
 import WeekSchedule from "../../components/WeekSchedule";
 import { useAuth } from "../../auth";
 import { useI18n } from "../../i18n";
-import { LEVELS, type FamilyDoc, type Level, type ScheduleSlot, type Subject } from "../../types";
+import { LEVELS, type FamilyDoc, type Level, type NotificationSummary, type ScheduleSlot, type Subject } from "../../types";
 import { Empty, Glyph, LevelBadge, Loader, StatTile, SubjectBadge, SubjectChip, useLoad } from "../../ui";
 
 interface AdminDash {
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const state = useLoad(() => api.get<AdminDash>("/api/dashboard"));
   const schedule = useLoad(() => api.get<ScheduleSlot[]>("/api/schedule"));
   const docs = useLoad(() => api.get<FamilyDoc[]>("/api/family-documents"));
+  const notifs = useLoad(() => api.get<NotificationSummary>("/api/notifications/summary"));
 
   return (
     <Loader state={state}>
@@ -33,6 +34,31 @@ export default function AdminDashboard() {
               {d.today_schedule.length === 0 ? t("no_class_today") : `${d.today_schedule.length} ${t("sessions_today")}`}
             </p>
           </div>
+
+          <section className="card">
+            <h2 className="mb-1 font-semibold">{t("nav_notifications")}</h2>
+            <p className="mb-3 text-xs text-neutral-500">{t("notifications_hint")}</p>
+            <Loader state={notifs}>
+              {(n) => {
+                const total = n.absence + n.homework + n.exam_prep;
+                return total === 0 ? (
+                  <p className="rounded-2xl bg-mint-soft px-4 py-3 text-sm font-semibold">✓ {t("all_sent")}</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Link to="/notifications/absence" className="active:scale-95">
+                      <StatTile tone="lilac" value={n.absence} label={t("case_absence")} />
+                    </Link>
+                    <Link to="/notifications/homework" className="active:scale-95">
+                      <StatTile tone="sun" value={n.homework} label={t("case_homework")} />
+                    </Link>
+                    <Link to="/notifications/exam_prep" className="active:scale-95">
+                      <StatTile tone="mint" value={n.exam_prep} label={t("case_exam_prep")} />
+                    </Link>
+                  </div>
+                );
+              }}
+            </Loader>
+          </section>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {LEVELS.map((l, i) => (

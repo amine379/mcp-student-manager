@@ -17,6 +17,7 @@ import AdminHomeworks from "./pages/admin/Homeworks";
 import AdminLessonDetail from "./pages/admin/LessonDetail";
 import AdminLessons from "./pages/admin/Lessons";
 import AdminMessages from "./pages/admin/Messages";
+import AdminNotifications from "./pages/admin/Notifications";
 import Students from "./pages/admin/Students";
 import FamilyDashboard from "./pages/family/Dashboard";
 import FamilyDocuments from "./pages/family/Documents";
@@ -65,6 +66,7 @@ function AppRoutes() {
             <Route path="schedule" element={<AdminSchedule />} />
             <Route path="documents" element={<AdminDocuments />} />
             <Route path="messages/:id" element={<AdminMessages />} />
+            <Route path="notifications/:type" element={<AdminNotifications />} />
             <Route path="lessons/:id" element={<AdminLessonDetail />} />
             <Route path="homeworks/:id" element={<AdminHomeworkDetail />} />
           </>

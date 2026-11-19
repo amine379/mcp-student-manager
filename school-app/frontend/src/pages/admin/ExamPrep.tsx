@@ -4,10 +4,11 @@ import { api, form } from "../../api";
 import { useI18n } from "../../i18n";
 import {
   CONTROL_NUMBERS, LEVELS, SEMESTERS, SUBJECTS,
-  type ControlNumber, type ExamPrep, type ExamPrepSubmissionRow, type Level, type Semester, type Subject,
+  type ControlNumber, type ExamPrep, type ExamPrepSubmissionRow, type Level, type Parent, type Semester, type Subject,
 } from "../../types";
 import {
-  Collapsible, Empty, ErrorBox, Field, FileButton, FileThumbs, Loader, PageTitle, VideoEmbed, useLoad, useSubmit,
+  appLink, Collapsible, Empty, ErrorBox, Field, FileButton, FileThumbs, Loader, PageTitle, VideoEmbed, useLoad,
+  useSubmit, WhatsAppButton,
 } from "../../ui";
 
 interface Folder {
@@ -21,6 +22,7 @@ export default function AdminExamPrep() {
   const [subject, setSubject] = useState<Subject>("math");
   const [folder, setFolder] = useState<Folder | null>(null);
   const list = useLoad(() => api.get<ExamPrep[]>(`/api/exam-preps?level=${level}&subject=${subject}`), [level, subject]);
+  const parents = useLoad(() => api.get<Parent[]>("/api/parents"));
 
   return (
     <div className="space-y-4">
@@ -42,6 +44,7 @@ export default function AdminExamPrep() {
               subject={subject}
               folder={folder}
               items={items.filter((e) => e.semester === folder.semester && e.control_number === folder.control_number)}
+              parents={parents.data ?? []}
               onBack={() => setFolder(null)}
               onChange={list.reload}
             />
@@ -91,9 +94,9 @@ function FolderGrid({ items, onOpen }: { items: ExamPrep[]; onOpen: (f: Folder) 
 }
 
 function FolderView({
-  level, subject, folder, items, onBack, onChange,
+  level, subject, folder, items, parents, onBack, onChange,
 }: {
-  level: Level; subject: Subject; folder: Folder; items: ExamPrep[]; onBack: () => void; onChange: () => void;
+  level: Level; subject: Subject; folder: Folder; items: ExamPrep[]; parents: Parent[]; onBack: () => void; onChange: () => void;
 }) {
   const { t } = useI18n();
   return (
@@ -114,7 +117,7 @@ function FolderView({
 
       {items.length === 0 ? <Empty text={t("folder_empty")} /> : (
         <div className="space-y-2">
-          {items.map((e) => <ExerciseItem key={e.id} item={e} onChange={onChange} />)}
+          {items.map((e) => <ExerciseItem key={e.id} item={e} parents={parents} onChange={onChange} />)}
         </div>
       )}
     </div>
@@ -158,7 +161,43 @@ function ExerciseForm({
   );
 }
 
-function ExerciseItem({ item, onChange }: { item: ExamPrep; onChange: () => void }) {
+/** Boutons WhatsApp pour prévenir les parents du niveau concerné par l'entraînement. */
+function NotifyParents({
+  item, parents, kind,
+}: { item: ExamPrep; parents: Parent[]; kind: "exam_prep" | "correction" }) {
+  const { t, fmtDate } = useI18n();
+  const recipients = parents.filter((p) => p.children.some((c) => c.level === item.level));
+  const key = kind === "exam_prep" ? "wa_exam_prep_text" : "wa_exam_prep_correction_text";
+  const hint = kind === "exam_prep" ? "notify_exam_prep_hint" : "notify_correction_hint";
+
+  const message = (name: string) =>
+    t(key)
+      .replace("{name}", name)
+      .replace("{subject}", t(item.subject))
+      .replace("{n}", String(item.control_number))
+      .replace("{title}", item.title)
+      .replace("{date}", fmtDate(item.created_at))
+      .replace("{link}", appLink("/exam-prep"));
+
+  if (recipients.length === 0) return null;
+
+  return (
+    <div className="space-y-2 rounded-2xl bg-neutral-50 p-3">
+      <p className="text-xs font-semibold text-neutral-600">{t("notify_parents")}</p>
+      <p className="text-xs text-neutral-500">{t(hint)}</p>
+      <ul className="divide-y divide-neutral-100">
+        {recipients.map((p) => (
+          <li key={p.id} className="flex flex-wrap items-center gap-2 py-2 text-sm">
+            <span className="min-w-28 flex-1">{p.full_name}</span>
+            <WhatsAppButton phone={p.phone} text={message(p.full_name)} label={t("wa_send")} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ExerciseItem({ item, parents, onChange }: { item: ExamPrep; parents: Parent[]; onChange: () => void }) {
   const { t, fmtDate } = useI18n();
   const [open, setOpen] = useState(false);
   const subs = useLoad(
@@ -201,6 +240,8 @@ function ExerciseItem({ item, onChange }: { item: ExamPrep; onChange: () => void
             <a href={item.statement_path} target="_blank" rel="noreferrer" className="btn-light">{t("see_statement")}</a>
           )}
 
+          <NotifyParents item={item} parents={parents} kind="exam_prep" />
+
           <div className="space-y-2 rounded-2xl bg-neutral-50 p-3">
             <p className="text-xs font-semibold text-neutral-600">{t("correction")}</p>
             {item.correction_path && (
@@ -221,6 +262,10 @@ function ExerciseItem({ item, onChange }: { item: ExamPrep; onChange: () => void
             </Field>
             {item.video_url && <VideoEmbed src={item.video_url} title={item.title} />}
           </div>
+
+          {(item.correction_path || item.video_url) && (
+            <NotifyParents item={item} parents={parents} kind="correction" />
+          )}
 
           <ErrorBox error={error} />
 
